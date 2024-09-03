@@ -1,0 +1,11 @@
+# operating system
+.DS_Store
+
+# compiler cache
+/.zig-cache
+
+# database storage
+/owl.db
+
+# compiled executable
+/owl
