@@ -4,6 +4,9 @@
 # compiler cache
 /.zig-cache
 
+# config file
+/owl.cfg
+
 # database storage
 /owl.db
 
