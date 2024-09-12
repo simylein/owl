@@ -3,6 +3,7 @@ const arguments = @import("arguments.zig");
 const config = @import("config.zig");
 const database = @import("database.zig");
 const logger = @import("logger.zig");
+const utils = @import("utils.zig");
 
 fn connect(address: std.net.Address) ?std.net.Stream {
     const stream = std.net.tcpConnectToAddress(address) catch |err| {
@@ -14,13 +15,13 @@ fn connect(address: std.net.Address) ?std.net.Stream {
 
 fn format(nanoseconds: u64) ![]const u8 {
     if (nanoseconds > 2_000_000_000) {
-        return std.fmt.allocPrint(std.heap.c_allocator, "{d}s", .{nanoseconds / 1_000_000_000});
+        return utils.format("{d}s", .{nanoseconds / 1_000_000_000});
     } else if (nanoseconds > 2_000_000) {
-        return std.fmt.allocPrint(std.heap.c_allocator, "{d}ms", .{nanoseconds / 1_000_000});
+        return utils.format("{d}ms", .{nanoseconds / 1_000_000});
     } else if (nanoseconds > 2_000) {
-        return std.fmt.allocPrint(std.heap.c_allocator, "{d}µs", .{nanoseconds / 1_000});
+        return utils.format("{d}µs", .{nanoseconds / 1_000});
     } else {
-        return std.fmt.allocPrint(std.heap.c_allocator, "{d}ns", .{nanoseconds});
+        return utils.format("{d}ns", .{nanoseconds});
     }
 }
 
