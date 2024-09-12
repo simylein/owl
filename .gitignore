@@ -7,8 +7,8 @@
 # config file
 /owl.cfg
 
-# database storage
-/owl.db
+# data storage
+/owl.bin
 
 # compiled executable
 /owl

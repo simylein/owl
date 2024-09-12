@@ -7,7 +7,7 @@ const logger = @import("logger.zig");
 pub fn main() void {
     arguments.init();
     const apps = config.init("owl.cfg");
-    var data = database.init("owl.db");
+    var data = database.init("owl.bin");
 
     for (apps.items) |app| {
         logger.debug("spawning {s} healthcheck thread...", .{app.name});
