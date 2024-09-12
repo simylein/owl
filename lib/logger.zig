@@ -1,4 +1,5 @@
 const std = @import("std");
+const config = @import("config.zig");
 
 const stdout = std.io.getStdOut().writer();
 const stderr = std.io.getStdErr().writer();
@@ -21,25 +22,25 @@ fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []c
 }
 
 pub fn trace(comptime format: []const u8, args: anytype) void {
-    log(stdout, blue, "trace", format, args);
+    if (config.log_level >= 6) log(stdout, blue, "trace", format, args);
 }
 
 pub fn debug(comptime format: []const u8, args: anytype) void {
-    log(stdout, cyan, "debug", format, args);
+    if (config.log_level >= 5) log(stdout, cyan, "debug", format, args);
 }
 
 pub fn info(comptime format: []const u8, args: anytype) void {
-    log(stdout, green, "info", format, args);
+    if (config.log_level >= 4) log(stdout, green, "info", format, args);
 }
 
 pub fn warn(comptime format: []const u8, args: anytype) void {
-    log(stderr, yellow, "warn", format, args);
+    if (config.log_level >= 3) log(stderr, yellow, "warn", format, args);
 }
 
 pub fn fault(comptime format: []const u8, args: anytype) void {
-    log(stderr, red, "fault", format, args);
+    if (config.log_level >= 2) log(stderr, red, "fault", format, args);
 }
 
 pub fn panic(comptime format: []const u8, args: anytype) void {
-    log(stderr, purple, "panic", format, args);
+    if (config.log_level >= 1) log(stderr, purple, "panic", format, args);
 }

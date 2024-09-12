@@ -7,6 +7,38 @@ const host = "127.0.0.1";
 const port = 4000;
 
 pub fn main() void {
+    var args = std.process.args();
+
+    if (!args.skip()) {
+        logger.panic("the zeroth argument is empty", .{});
+        std.process.exit(1);
+    }
+    while (args.next()) |arg| {
+        if (std.mem.eql(u8, arg, "--log-level")) {
+            if (args.next()) |log_level| {
+                if (std.mem.eql(u8, log_level, "trace")) {
+                    config.log_level = 6;
+                } else if (std.mem.eql(u8, log_level, "debug")) {
+                    config.log_level = 5;
+                } else if (std.mem.eql(u8, log_level, "info")) {
+                    config.log_level = 4;
+                } else if (std.mem.eql(u8, log_level, "warn")) {
+                    config.log_level = 3;
+                } else if (std.mem.eql(u8, log_level, "fault")) {
+                    config.log_level = 2;
+                } else if (std.mem.eql(u8, log_level, "panic")) {
+                    config.log_level = 1;
+                } else {
+                    logger.fault("log level must be one of trace debug info warn error panic", .{});
+                    std.process.exit(1);
+                }
+            } else {
+                logger.fault("log level must be one of trace debug info warn error panic", .{});
+                std.process.exit(1);
+            }
+        }
+    }
+
     const apps = config.init("owl.cfg");
     var data = database.init("owl.db");
 

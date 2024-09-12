@@ -1,6 +1,8 @@
 const std = @import("std");
 const logger = @import("logger.zig");
 
+pub var log_level: u3 = 4;
+
 pub const App = struct {
     name: []u8,
     address: std.net.Address,
