@@ -26,7 +26,11 @@ pub fn calculate(apps: std.ArrayList(config.App), data: *database.Data) !std.Arr
     }
 
     for (data.statuses.items) |status| {
-        const day: u7 = bucket(status.timestamp, 86400, 96);
+        const now: u64 = @intCast(std.time.timestamp());
+        if (now - status.timestamp > std.time.s_per_day * 96) {
+            continue;
+        }
+        const day: u7 = bucket(now, status.timestamp, std.time.s_per_day, 96);
         if (uptimes.items[status.app_id].days[day].timestamp > status.timestamp) {
             uptimes.items[status.app_id].days[day].timestamp = status.timestamp;
         }
@@ -40,8 +44,7 @@ pub fn calculate(apps: std.ArrayList(config.App), data: *database.Data) !std.Arr
     return uptimes;
 }
 
-pub fn bucket(timestamp: u64, timespan: u32, max: u7) u7 {
-    const now: u64 = @intCast(std.time.timestamp());
+pub fn bucket(now: u64, timestamp: u64, timespan: u32, max: u7) u7 {
     const distance = now - (now % timespan) - (timestamp - (timestamp % timespan));
     const index: u7 = @intCast(if (distance < 0) 0 else distance / timespan);
     return max - index - 1;
