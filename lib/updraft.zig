@@ -25,8 +25,11 @@ fn global(buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice(".p-4{padding:16px}");
 
+    try buffer.appendSlice(".gap-0\\.5{gap:2px}");
     try buffer.appendSlice(".gap-2{gap:8px}");
     try buffer.appendSlice(".gap-4{gap:16px}");
+
+    try buffer.appendSlice(".hidden{display:none}");
 
     try buffer.appendSlice(".flex{display:flex}");
     try buffer.appendSlice(".flex-col{flex-direction:column}");
@@ -51,11 +54,13 @@ fn global(buffer: *std.ArrayList(u8)) !void {
 fn small(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(min-width:512px){");
 
-    try buffer.appendSlice(".sm\\:mx-16{margin-left:64px;margin-right:64px}");
-    try buffer.appendSlice(".sm\\:my-12{margin-top:48px;margin-bottom:48px}");
+    try buffer.appendSlice(".sm\\:mx-8{margin-left:32px;margin-right:32px}");
+    try buffer.appendSlice(".sm\\:my-9{margin-top:36px;margin-bottom:36px}");
 
     try buffer.appendSlice(".sm\\:gap-4{gap:16px}");
     try buffer.appendSlice(".sm\\:gap-8{gap:32px}");
+
+    try buffer.appendSlice(".sm\\:block{display:block}");
 
     try buffer.appendSlice(".sm\\:grid-columns-48{grid-template-columns:repeat(48,minmax(0,1fr))}");
 
@@ -65,6 +70,11 @@ fn small(buffer: *std.ArrayList(u8)) !void {
 fn medium(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(min-width:768px){");
 
+    try buffer.appendSlice(".md\\:mx-16{margin-left:64px;margin-right:64px}");
+    try buffer.appendSlice(".md\\:my-12{margin-top:48px;margin-bottom:48px}");
+
+    try buffer.appendSlice(".md\\:block{display:block}");
+
     try buffer.appendSlice(".md\\:grid-columns-64{grid-template-columns:repeat(64,minmax(0,1fr))}");
 
     try buffer.appendSlice("}");
@@ -73,6 +83,8 @@ fn medium(buffer: *std.ArrayList(u8)) !void {
 fn large(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(min-width:1024px){");
 
+    try buffer.appendSlice(".lg\\:block{display:block}");
+
     try buffer.appendSlice(".lg\\:grid-columns-80{grid-template-columns:repeat(80,minmax(0,1fr))}");
 
     try buffer.appendSlice("}");
@@ -80,6 +92,8 @@ fn large(buffer: *std.ArrayList(u8)) !void {
 
 fn giant(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(min-width:1280px){");
+
+    try buffer.appendSlice(".xl\\:block{display:block}");
 
     try buffer.appendSlice(".xl\\:grid-columns-96{grid-template-columns:repeat(96,minmax(0,1fr))}");
 

@@ -33,7 +33,7 @@ pub fn body(entries: *std.ArrayList(uptime.Uptime)) ![]u8 {
     try buffer.appendSlice("</head>");
 
     try buffer.appendSlice("<body class=\"m-0 black dark:white bg-neutral-100 dark:bg-neutral-900\">");
-    try buffer.appendSlice("<main class=\"flex flex-col mx-4 my-6 sm:mx-16 sm:my-12\">");
+    try buffer.appendSlice("<main class=\"flex flex-col mx-4 my-6 sm:mx-8 sm:my-9 md:mx-16 md:my-12\">");
     try buffer.appendSlice("<div class=\"flex gap-2 sm:gap-4 flex-col\">");
     for (entries.items) |entry| {
         try container(entry, &buffer);
@@ -70,15 +70,18 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
 }
 
 fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
-    try buffer.appendSlice("<div class=\"grid grid-columns-32 sm:grid-columns-48 md:grid-columns-64 lg:grid-columns-80 xl:grid-columns-96\">");
+    try buffer.appendSlice("<div class=\"grid gap-0.5 grid-columns-32 sm:grid-columns-48 md:grid-columns-64 lg:grid-columns-80 xl:grid-columns-96\">");
 
-    for (days) |day| {
-        const total: f16 = @floatFromInt(day.healthy + day.unhealthy);
-        const healthy: f16 = @floatFromInt(day.healthy);
+    var index: u7 = 0;
+    while (index < days.len) : (index += 1) {
+        const total: f16 = @floatFromInt(days[index].healthy + days[index].unhealthy);
+        const healthy: f16 = @floatFromInt(days[index].healthy);
         const percent: f16 = if (total != 0) (healthy / total) * 100 else 0.0;
-        const color = try line(percent);
+        const display = try visibility(index);
+        defer std.heap.c_allocator.free(display);
+        const color = try colorize(percent);
         defer std.heap.c_allocator.free(color);
-        const slice = try utils.format("<div class=\"h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ color, percent });
+        const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent });
         defer std.heap.c_allocator.free(slice);
         try buffer.appendSlice(slice);
     }
@@ -86,7 +89,25 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("</div>");
 }
 
-fn line(percent: f16) ![]u8 {
+fn visibility(index: u7) ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    if (index < 32) {
+        try buffer.appendSlice("block");
+    } else if (index < 48) {
+        try buffer.appendSlice("hidden sm:block");
+    } else if (index < 64) {
+        try buffer.appendSlice("hidden md:block");
+    } else if (index < 80) {
+        try buffer.appendSlice("hidden lg:block");
+    } else if (index < 96) {
+        try buffer.appendSlice("hidden xl:block");
+    }
+
+    return buffer.toOwnedSlice();
+}
+
+fn colorize(percent: f16) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     if (percent == 0) {
