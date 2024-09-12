@@ -58,7 +58,17 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
-    const right = try utils.format("<p class=\"m-0\">uptime <span>{d}%</span></p>", .{100});
+    var total_count: f32 = 0;
+    var total_value: f32 = 0;
+    for (entry.days) |day| {
+        const healthy: f16 = @floatFromInt(day.healthy);
+        const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
+        const value: f16 = if (count != 0) (healthy / count) * 100 else 0.0;
+        total_count += count;
+        total_value += value;
+    }
+
+    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{total_value});
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 
@@ -74,19 +84,29 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
 
     var index: u7 = 0;
     while (index < days.len) : (index += 1) {
-        const total: f16 = @floatFromInt(days[index].healthy + days[index].unhealthy);
-        const healthy: f16 = @floatFromInt(days[index].healthy);
-        const percent: f16 = if (total != 0) (healthy / total) * 100 else 0.0;
+        const percent = percentage(days[index]);
         const display = try visibility(index);
         defer std.heap.c_allocator.free(display);
-        const color = try colorize(percent, total);
+        const color = try colorize(percent);
         defer std.heap.c_allocator.free(color);
-        const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent });
+        const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent.value });
         defer std.heap.c_allocator.free(slice);
         try buffer.appendSlice(slice);
     }
 
     try buffer.appendSlice("</div>");
+}
+
+const Percentage = struct {
+    value: f16,
+    count: f16,
+};
+
+fn percentage(day: uptime.Day) Percentage {
+    const healthy: f16 = @floatFromInt(day.healthy);
+    const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
+    const value: f16 = if (count != 0) (healthy / count) * 100 else 0.0;
+    return Percentage{ .value = value, .count = count };
 }
 
 fn visibility(index: u7) ![]u8 {
@@ -107,16 +127,16 @@ fn visibility(index: u7) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-fn colorize(percent: f16, total: f16) ![]u8 {
+fn colorize(percent: Percentage) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    if (percent == 0 and total == 0) {
+    if (percent.value == 0 and percent.count == 0) {
         try buffer.appendSlice("bg-neutral-300 dark:bg-neutral-700");
-    } else if (percent > 99.9) {
+    } else if (percent.value > 99.9) {
         try buffer.appendSlice("bg-green-400 dark:bg-green-600");
-    } else if (percent > 99) {
+    } else if (percent.value > 99) {
         try buffer.appendSlice("bg-yellow-400 dark:bg-yellow-600");
-    } else if (percent > 98) {
+    } else if (percent.value > 98) {
         try buffer.appendSlice("bg-orange-400 dark:bg-orange-600");
     } else {
         try buffer.appendSlice("bg-red-400 dark:bg-red-600");
