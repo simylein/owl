@@ -79,7 +79,7 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
         const percent: f16 = if (total != 0) (healthy / total) * 100 else 0.0;
         const display = try visibility(index);
         defer std.heap.c_allocator.free(display);
-        const color = try colorize(percent);
+        const color = try colorize(percent, total);
         defer std.heap.c_allocator.free(color);
         const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent });
         defer std.heap.c_allocator.free(slice);
@@ -107,10 +107,10 @@ fn visibility(index: u7) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-fn colorize(percent: f16) ![]u8 {
+fn colorize(percent: f16, total: f16) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    if (percent == 0) {
+    if (percent == 0 and total == 0) {
         try buffer.appendSlice("bg-neutral-300 dark:bg-neutral-700");
     } else if (percent > 99.9) {
         try buffer.appendSlice("bg-green-400 dark:bg-green-600");
