@@ -45,6 +45,7 @@ pub fn main() void {
             logger.trace("closed connection to {}", .{connection.address});
             connection.stream.close();
         }
+        logger.info("rendering uptime...", .{});
         const buffer = handle(apps, &data) catch |err| {
             logger.fault("could not handle client {} ({s})", .{ connection.address, @errorName(err) });
             continue;
@@ -59,14 +60,17 @@ pub fn main() void {
 }
 
 fn handle(apps: std.ArrayList(config.App), data: *database.Data) ![]u8 {
+    logger.trace("calculating uptimes...", .{});
     var uptimes = try uptime.calculate(apps, data);
     defer uptimes.deinit();
 
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
+    logger.debug("rendering body...", .{});
     const body = try render.body(&uptimes);
     defer std.heap.c_allocator.free(body);
 
+    logger.debug("rendering head...", .{});
     const head = try render.head(body.len);
     defer std.heap.c_allocator.free(head);
 
