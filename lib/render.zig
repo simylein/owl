@@ -111,7 +111,7 @@ fn colorize(percent: f16) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     if (percent == 0) {
-        try buffer.appendSlice("bg-neutral-400 dark:bg-neutral-600");
+        try buffer.appendSlice("bg-neutral-300 dark:bg-neutral-700");
     } else if (percent > 99.9) {
         try buffer.appendSlice("bg-green-400 dark:bg-green-600");
     } else if (percent > 99) {

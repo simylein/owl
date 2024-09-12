@@ -44,7 +44,7 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".black{color:#000000}");
     try buffer.appendSlice(".bg-white{background-color:#ffffff}");
     try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
-    try buffer.appendSlice(".bg-neutral-400{background-color:#a3a3a3}");
+    try buffer.appendSlice(".bg-neutral-300{background-color:#d4d4d4}");
     try buffer.appendSlice(".bg-red-400{background-color:#f87171}");
     try buffer.appendSlice(".bg-orange-400{background-color:#fb923c}");
     try buffer.appendSlice(".bg-yellow-400{background-color:#facc15}");
@@ -105,7 +105,7 @@ fn dark(buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
     try buffer.appendSlice(".dark\\:bg-black{background-color:#000000}");
-    try buffer.appendSlice(".dark\\:bg-neutral-600{background-color:#525252}");
+    try buffer.appendSlice(".dark\\:bg-neutral-700{background-color:#404040}");
     try buffer.appendSlice(".dark\\:bg-neutral-900{background-color:#171717}");
     try buffer.appendSlice(".dark\\:bg-red-600{background-color:#dc2626}");
     try buffer.appendSlice(".dark\\:bg-orange-600{background-color:#ea580c}");
