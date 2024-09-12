@@ -54,7 +54,9 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice("<div class=\"w-full flex gap-4 sm:gap-8 justify-between\">");
 
-    const left = try utils.format("<p class=\"m-0\">{s} <span>{s}</span></p>", .{ entry.app.name, "online" });
+    const status = if (entry.latest.healthy) "online" else "offline";
+
+    const left = try utils.format("<p class=\"m-0\">{s} <span>{s}</span></p>", .{ entry.app.name, status });
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
@@ -66,9 +68,9 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         total_healthy += healthy;
         total_count += count;
     }
-    const value: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0.0;
+    const percent: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0.0;
 
-    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{value});
+    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{percent});
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 

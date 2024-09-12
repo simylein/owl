@@ -11,6 +11,12 @@ pub const Day = struct {
 pub const Uptime = struct {
     app: config.App,
     days: [96]Day,
+    latest: Latest,
+};
+
+pub const Latest = struct {
+    timestamp: u64,
+    healthy: bool,
 };
 
 pub fn calculate(apps: std.ArrayList(config.App), data: *database.Data) !std.ArrayList(Uptime) {
@@ -22,7 +28,7 @@ pub fn calculate(apps: std.ArrayList(config.App), data: *database.Data) !std.Arr
         while (index < days.len) : (index += 1) {
             days[index] = Day{ .timestamp = std.math.maxInt(u64), .healthy = 0, .unhealthy = 0 };
         }
-        try uptimes.append(.{ .app = app, .days = days });
+        try uptimes.append(.{ .app = app, .days = days, .latest = Latest{ .timestamp = 0, .healthy = undefined } });
     }
 
     for (data.statuses.items) |status| {
@@ -33,6 +39,9 @@ pub fn calculate(apps: std.ArrayList(config.App), data: *database.Data) !std.Arr
         const day: u7 = bucket(now, status.timestamp, std.time.s_per_day, 96);
         if (uptimes.items[status.app_id].days[day].timestamp > status.timestamp) {
             uptimes.items[status.app_id].days[day].timestamp = status.timestamp;
+        }
+        if (uptimes.items[status.app_id].latest.timestamp < status.timestamp) {
+            uptimes.items[status.app_id].latest.healthy = status.healthy;
         }
         if (status.healthy) {
             uptimes.items[status.app_id].days[day].healthy += 1;
