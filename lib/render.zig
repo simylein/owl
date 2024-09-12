@@ -58,17 +58,17 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
+    var total_healthy: f32 = 0;
     var total_count: f32 = 0;
-    var total_value: f32 = 0;
     for (entry.days) |day| {
         const healthy: f16 = @floatFromInt(day.healthy);
         const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
-        const value: f16 = if (count != 0) (healthy / count) * 100 else 0.0;
+        total_healthy += healthy;
         total_count += count;
-        total_value += value;
     }
+    const value: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0.0;
 
-    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{total_value});
+    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{value});
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 
