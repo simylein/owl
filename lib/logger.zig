@@ -12,7 +12,11 @@ const red = "\x1b[31m";
 const bold = "\x1b[1m";
 const reset = "\x1b[0m";
 
+var mutex = std.Thread.Mutex{};
+
 fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []const u8, comptime format: []const u8, args: anytype) void {
+    mutex.lock();
+    defer mutex.unlock();
     writer.print(bold ++ "owl" ++ reset ++ " " ++ bold ++ color ++ level ++ reset ++ bold ++ ":" ++ reset ++ " " ++ format ++ "\n", args) catch return;
 }
 

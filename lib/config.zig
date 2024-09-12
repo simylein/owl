@@ -29,8 +29,9 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
         std.process.exit(1);
     };
     logger.debug("read {d} bytes from {s}", .{ read, path });
+
+    logger.debug("parsing config...", .{});
     const content = buffer[0..read];
-    logger.debug("parsing configuration...", .{});
     var apps = std.ArrayList(App).init(std.heap.c_allocator);
     var index: u8 = 0;
     var tokenizer = std.mem.tokenize(u8, content, "\n");
@@ -38,6 +39,7 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
         logger.trace("parsing app {d}...", .{index});
         var app = App{ .name = undefined, .address = undefined, .timeout = undefined, .interval = undefined };
         var token = std.mem.tokenize(u8, line, " ");
+
         const name = if (token.next()) |name| name else {
             logger.fault("app {d} must have a name", .{index});
             std.process.exit(1);
@@ -58,6 +60,7 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
             logger.fault("app {d} must have an interval", .{index});
             std.process.exit(1);
         };
+
         if (name.len < 2 or name.len > 16) {
             logger.fault("app {d} name must be between 2 and 16 characters", .{index});
             std.process.exit(1);
@@ -92,11 +95,13 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
             logger.fault("app {d} timeout must be smaller than interval", .{index});
             std.process.exit(1);
         }
+
         apps.append(app) catch |err| {
             logger.panic("could not allocate app {s} ({s})", .{ app.name, @errorName(err) });
             std.process.exit(1);
         };
     }
-    logger.info("configuration holds {d} apps", .{apps.items.len});
+
+    logger.info("config holds {d} apps", .{apps.items.len});
     return apps;
 }
