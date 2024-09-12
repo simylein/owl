@@ -54,7 +54,7 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice("<div class=\"w-full flex gap-4 sm:gap-8 justify-between\">");
 
-    const status = if (entry.latest.healthy) "online" else "offline";
+    const status = if (entry.app.latest.healthy) "online" else "offline";
 
     const left = try utils.format("<p class=\"m-0\">{s} <span>{s}</span></p>", .{ entry.app.name, status });
     defer std.heap.c_allocator.free(left);

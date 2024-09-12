@@ -10,13 +10,14 @@ const utils = @import("utils.zig");
 
 pub fn main() void {
     arguments.init();
-    const apps = config.init("owl.cfg");
+    var apps = config.init("owl.cfg");
     var data = database.init("owl.bin");
 
-    for (apps.items) |app| {
-        logger.debug("spawning {s} healthcheck thread...", .{app.name});
-        const thread = std.Thread.spawn(.{ .allocator = std.heap.c_allocator }, health.check, .{ app, &data }) catch |err| {
-            logger.panic("could not spawn thread for app {s} ({s})", .{ app.name, @errorName(err) });
+    var index: u7 = 0;
+    while (index < apps.items.len) : (index += 1) {
+        logger.debug("spawning {s} healthcheck thread...", .{apps.items[index].name});
+        const thread = std.Thread.spawn(.{ .allocator = std.heap.c_allocator }, health.check, .{ &apps.items[index], &data }) catch |err| {
+            logger.panic("could not spawn thread for app {s} ({s})", .{ apps.items[index].name, @errorName(err) });
             std.process.exit(1);
         };
         defer thread.detach();

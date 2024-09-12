@@ -25,7 +25,7 @@ fn format(nanoseconds: u64) ![]const u8 {
     }
 }
 
-pub fn check(app: config.App, data: *database.Data) void {
+pub fn check(app: *config.App, data: *database.Data) void {
     std.time.sleep(std.time.ns_per_s);
 
     while (true) {
@@ -40,6 +40,8 @@ pub fn check(app: config.App, data: *database.Data) void {
         const timestamp: u64 = @intCast(@divFloor(start, 1000_000_000));
         const latency: u48 = @intCast(stop - start);
         const healthy = if (stream != null) true else false;
+
+        app.latest = config.Latest{ .timestamp = timestamp, .healthy = healthy };
 
         const formatted = format(latency) catch "???ns";
         defer std.heap.c_allocator.free(formatted);
