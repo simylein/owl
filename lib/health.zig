@@ -38,7 +38,7 @@ pub fn check(app: config.App, data: *database.Data) void {
         const stop = std.time.nanoTimestamp();
 
         const timestamp: u64 = @intCast(@divFloor(start, 1000_000_000));
-        const latency: u32 = @intCast(stop - start);
+        const latency: u48 = @intCast(stop - start);
         const healthy = if (stream != null) true else false;
 
         const formatted = format(latency) catch "???ns";

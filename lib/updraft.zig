@@ -5,6 +5,9 @@ pub fn style(buffer: *std.ArrayList(u8)) !void {
 
     try global(buffer);
     try small(buffer);
+    try medium(buffer);
+    try large(buffer);
+    try giant(buffer);
     try dark(buffer);
 
     try buffer.appendSlice("</style>");
@@ -36,12 +39,17 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".rounded-sm{border-radius:2px}");
 
     try buffer.appendSlice(".black{color:#000000}");
-    try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
     try buffer.appendSlice(".bg-white{background-color:#ffffff}");
+    try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
+    try buffer.appendSlice(".bg-neutral-400{background-color:#a3a3a3}");
+    try buffer.appendSlice(".bg-red-400{background-color:#f87171}");
+    try buffer.appendSlice(".bg-orange-400{background-color:#fb923c}");
+    try buffer.appendSlice(".bg-yellow-400{background-color:#facc15}");
+    try buffer.appendSlice(".bg-green-400{background-color:#4ade80}");
 }
 
 fn small(buffer: *std.ArrayList(u8)) !void {
-    try buffer.appendSlice("@media(min-width:640px){");
+    try buffer.appendSlice("@media(min-width:512px){");
 
     try buffer.appendSlice(".sm\\:mx-16{margin-left:64px;margin-right:64px}");
     try buffer.appendSlice(".sm\\:my-12{margin-top:48px;margin-bottom:48px}");
@@ -49,13 +57,46 @@ fn small(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".sm\\:gap-4{gap:16px}");
     try buffer.appendSlice(".sm\\:gap-8{gap:32px}");
 
+    try buffer.appendSlice(".sm\\:grid-columns-48{grid-template-columns:repeat(48,minmax(0,1fr))}");
+
+    try buffer.appendSlice("}");
+}
+
+fn medium(buffer: *std.ArrayList(u8)) !void {
+    try buffer.appendSlice("@media(min-width:768px){");
+
+    try buffer.appendSlice(".md\\:grid-columns-64{grid-template-columns:repeat(64,minmax(0,1fr))}");
+
+    try buffer.appendSlice("}");
+}
+
+fn large(buffer: *std.ArrayList(u8)) !void {
+    try buffer.appendSlice("@media(min-width:1024px){");
+
+    try buffer.appendSlice(".lg\\:grid-columns-80{grid-template-columns:repeat(80,minmax(0,1fr))}");
+
+    try buffer.appendSlice("}");
+}
+
+fn giant(buffer: *std.ArrayList(u8)) !void {
+    try buffer.appendSlice("@media(min-width:1280px){");
+
+    try buffer.appendSlice(".xl\\:grid-columns-96{grid-template-columns:repeat(96,minmax(0,1fr))}");
+
     try buffer.appendSlice("}");
 }
 
 fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(prefers-color-scheme:dark){");
+
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
     try buffer.appendSlice(".dark\\:bg-black{background-color:#000000}");
+    try buffer.appendSlice(".dark\\:bg-neutral-600{background-color:#525252}");
     try buffer.appendSlice(".dark\\:bg-neutral-900{background-color:#171717}");
+    try buffer.appendSlice(".dark\\:bg-red-600{background-color:#dc2626}");
+    try buffer.appendSlice(".dark\\:bg-orange-600{background-color:#ea580c}");
+    try buffer.appendSlice(".dark\\:bg-yellow-600{background-color:#ca8a04}");
+    try buffer.appendSlice(".dark\\:bg-green-600{background-color:#16a34a}");
+
     try buffer.appendSlice("}");
 }

@@ -5,6 +5,7 @@ const database = @import("database.zig");
 const health = @import("health.zig");
 const logger = @import("logger.zig");
 const render = @import("render.zig");
+const uptime = @import("uptime.zig");
 const utils = @import("utils.zig");
 
 pub fn main() void {
@@ -58,11 +59,12 @@ pub fn main() void {
 }
 
 fn handle(apps: std.ArrayList(config.App), data: *database.Data) ![]u8 {
-    _ = data;
+    var uptimes = try uptime.calculate(apps, data);
+    defer uptimes.deinit();
 
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    const body = try render.body(apps);
+    const body = try render.body(&uptimes);
     defer std.heap.c_allocator.free(body);
 
     const head = try render.head(body.len);
