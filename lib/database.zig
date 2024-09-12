@@ -1,6 +1,8 @@
 const std = @import("std");
 const logger = @import("logger.zig");
 
+var mutex = std.Thread.Mutex{};
+
 const Status = struct {
     app_id: u8,
     timestamp: u64,
@@ -11,10 +13,12 @@ const Status = struct {
 pub const Data = struct {
     path: []const u8,
     file: std.fs.File,
-    status: std.ArrayList(Status),
+    statuses: std.ArrayList(Status),
 
     pub fn insert(self: *Data, status: Status) !void {
-        try self.status.append(status);
+        mutex.lock();
+        defer mutex.unlock();
+        try self.statuses.append(status);
         var buffer: [14]u8 = undefined;
         std.mem.writeInt(u8, buffer[0..1], status.app_id, std.builtin.Endian.little);
         std.mem.writeInt(u64, buffer[1..9], status.timestamp, std.builtin.Endian.little);
@@ -25,7 +29,7 @@ pub const Data = struct {
     }
 
     pub fn deinit(self: *Data) void {
-        self.status.deinit();
+        self.statuses.deinit();
         self.file.close();
     }
 };
@@ -50,13 +54,26 @@ pub fn init(comptime path: []const u8) Data {
     };
     logger.debug("read {d} bytes from {s}", .{ read, path });
 
-    const content = buffer[0..read];
-    const status = std.ArrayList(Status).init(std.heap.c_allocator);
-
     logger.debug("parsing database...", .{});
-    // TODO: actually do something
-    _ = content;
+    const content = buffer[0..read];
+    var statuses = std.ArrayList(Status).init(std.heap.c_allocator);
+    var index: u64 = 0;
+    while (index < content.len) : (index += 14) {
+        logger.trace("parsing status {d}...", .{index / 14});
+        const slice = content[index .. index + 14];
+        var status = Status{ .app_id = undefined, .timestamp = undefined, .latency = undefined, .healthy = undefined };
 
-    logger.info("database holds {d} status", .{status.items.len});
-    return Data{ .path = path, .file = file, .status = status };
+        status.app_id = std.mem.readInt(u8, slice[0..1], std.builtin.Endian.little);
+        status.timestamp = std.mem.readInt(u64, slice[1..9], std.builtin.Endian.little);
+        status.latency = std.mem.readInt(u32, slice[9..13], std.builtin.Endian.little);
+        status.healthy = std.mem.readInt(u8, slice[13..14], std.builtin.Endian.little) == 1;
+
+        statuses.append(status) catch |err| {
+            logger.panic("could not allocate status for app {d} ({s})", .{ status.app_id, @errorName(err) });
+            std.process.exit(1);
+        };
+    }
+
+    logger.info("database holds {d} statuses", .{statuses.items.len});
+    return Data{ .path = path, .file = file, .statuses = statuses };
 }

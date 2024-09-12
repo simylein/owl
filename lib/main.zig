@@ -36,23 +36,28 @@ pub fn main() void {
             logger.fault("could not accept client ({s})", .{@errorName(err)});
             continue;
         };
-        logger.debug("connection from {}", .{connection.address});
+        logger.trace("accepted connection from {}", .{connection.address});
+        defer {
+            logger.trace("closed connection to {}", .{connection.address});
+            connection.stream.close();
+        }
     }
 }
 
 pub fn healthcheck(app: config.App, data: *database.Data) void {
+    std.time.sleep(std.time.ns_per_s);
+
     while (true) {
         logger.trace("healthchecking {s}...", .{app.name});
         const start = std.time.nanoTimestamp();
 
         const stop = std.time.nanoTimestamp();
 
-        const app_id: u8 = 0;
         const timestamp: u64 = @intCast(@divFloor(start, 1000_000_000));
         const latency: u32 = @intCast(stop - start);
         const healthy: bool = true;
 
-        data.insert(.{ .app_id = app_id, .timestamp = timestamp, .latency = latency, .healthy = healthy }) catch |err| {
+        data.insert(.{ .app_id = app.id, .timestamp = timestamp, .latency = latency, .healthy = healthy }) catch |err| {
             logger.fault("could not insert data for app {s} ({s})", .{ app.name, @errorName(err) });
         };
 

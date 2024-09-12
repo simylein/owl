@@ -2,6 +2,7 @@ const std = @import("std");
 const logger = @import("logger.zig");
 
 pub const App = struct {
+    id: u8,
     name: []u8,
     address: std.net.Address,
     timeout: u8,
@@ -37,9 +38,14 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
     var tokenizer = std.mem.tokenize(u8, content, "\n");
     while (tokenizer.next()) |line| : (index += 1) {
         logger.trace("parsing app {d}...", .{index});
-        var app = App{ .name = undefined, .address = undefined, .timeout = undefined, .interval = undefined };
+        var app = App{ .id = undefined, .name = undefined, .address = undefined, .timeout = undefined, .interval = undefined };
         var token = std.mem.tokenize(u8, line, " ");
 
+        if (apps.items.len >= 255) {
+            logger.fault("config can only hold a max of 255 apps", .{});
+            std.process.exit(1);
+        }
+        const id: u8 = @intCast(apps.items.len);
         const name = if (token.next()) |name| name else {
             logger.fault("app {d} must have a name", .{index});
             std.process.exit(1);
@@ -61,6 +67,7 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
             std.process.exit(1);
         };
 
+        app.id = id;
         if (name.len < 2 or name.len > 16) {
             logger.fault("app {d} name must be between 2 and 16 characters", .{index});
             std.process.exit(1);
