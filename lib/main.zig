@@ -42,5 +42,33 @@ pub fn main() void {
             logger.trace("closed connection to {}", .{connection.address});
             connection.stream.close();
         }
+        const buffer = handle(apps, data) catch |err| {
+            logger.fault("could not handle client {} ({s})", .{ connection.address, @errorName(err) });
+            continue;
+        };
+        defer buffer.deinit();
+        const wrote = connection.stream.write(buffer.items) catch |err| {
+            logger.fault("could not send {d} bytes client {} ({s})", .{ buffer.items.len, connection.address, @errorName(err) });
+            continue;
+        };
+        logger.debug("wrote {d} bytes to {}", .{ wrote, connection.address });
     }
+}
+
+fn handle(apps: std.ArrayList(config.App), data: database.Data) !std.ArrayList(u8) {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    try buffer.appendSlice("HTTP/1.1 200 OK\r\n\r\n");
+    for (apps.items) |app| {
+        const slice = try std.fmt.allocPrint(std.heap.c_allocator, "id {d} name {s} timeout {d} interval {d}\n", .{ app.id, app.name, app.timeout, app.interval });
+        defer std.heap.c_allocator.free(slice);
+        try buffer.appendSlice(slice);
+    }
+    for (data.statuses.items) |status| {
+        const slice = try std.fmt.allocPrint(std.heap.c_allocator, "app_id {d} timestamp {d} latency {d} healthy {}\n", .{ status.app_id, status.timestamp, status.latency, status.healthy });
+        defer std.heap.c_allocator.free(slice);
+        try buffer.appendSlice(slice);
+    }
+
+    return buffer;
 }
