@@ -6,7 +6,7 @@ const logger = @import("logger.zig");
 
 fn connect(address: std.net.Address) ?std.net.Stream {
     const stream = std.net.tcpConnectToAddress(address) catch |err| {
-        logger.warn("could not connect to {} ({s})", .{ address, @errorName(err) });
+        logger.debug("could not connect to {} ({s})", .{ address, @errorName(err) });
         return null;
     };
     return stream;
