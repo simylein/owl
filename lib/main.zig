@@ -60,7 +60,7 @@ fn handle(apps: std.ArrayList(config.App), data: database.Data) !std.ArrayList(u
 
     try buffer.appendSlice("HTTP/1.1 200 OK\r\n\r\n");
     for (apps.items) |app| {
-        const slice = try std.fmt.allocPrint(std.heap.c_allocator, "id {d} name {s} timeout {d} interval {d}\n", .{ app.id, app.name, app.timeout, app.interval });
+        const slice = try std.fmt.allocPrint(std.heap.c_allocator, "id {d} name {s} interval {d}\n", .{ app.id, app.name, app.interval });
         defer std.heap.c_allocator.free(slice);
         try buffer.appendSlice(slice);
     }

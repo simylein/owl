@@ -5,7 +5,6 @@ pub const App = struct {
     id: u8,
     name: []u8,
     address: std.net.Address,
-    timeout: u8,
     interval: u8,
 };
 
@@ -38,7 +37,7 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
     var tokenizer = std.mem.tokenize(u8, content, "\n");
     while (tokenizer.next()) |line| : (index += 1) {
         logger.trace("parsing app {d}...", .{index});
-        var app = App{ .id = undefined, .name = undefined, .address = undefined, .timeout = undefined, .interval = undefined };
+        var app = App{ .id = undefined, .name = undefined, .address = undefined, .interval = undefined };
         var token = std.mem.tokenize(u8, line, " ");
 
         if (apps.items.len >= 255) {
@@ -56,10 +55,6 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
         };
         const port = if (token.next()) |port| port else {
             logger.fault("app {d} must have a port", .{index});
-            std.process.exit(1);
-        };
-        const timeout = if (token.next()) |timeout| timeout else {
-            logger.fault("app {d} must have an timeout", .{index});
             std.process.exit(1);
         };
         const interval = if (token.next()) |interval| interval else {
@@ -90,18 +85,10 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
             logger.fault("app {d} address must be valid ({s})", .{ index, @errorName(err) });
             std.process.exit(1);
         };
-        app.timeout = std.fmt.parseInt(u8, timeout, 10) catch {
-            logger.fault("app {d} timeout must be between 0 and 255", .{index});
-            std.process.exit(1);
-        };
         app.interval = std.fmt.parseInt(u8, interval, 10) catch {
             logger.fault("app {d} interval must be between 0 and 255", .{index});
             std.process.exit(1);
         };
-        if (app.timeout > app.interval) {
-            logger.fault("app {d} timeout must be smaller than interval", .{index});
-            std.process.exit(1);
-        }
 
         apps.append(app) catch |err| {
             logger.panic("could not allocate app {s} ({s})", .{ app.name, @errorName(err) });
