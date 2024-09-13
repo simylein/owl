@@ -1,5 +1,6 @@
 const std = @import("std");
 const arguments = @import("arguments.zig");
+const utils = @import("utils.zig");
 
 const stdout = std.io.getStdOut().writer();
 const stderr = std.io.getStdErr().writer();
@@ -19,6 +20,14 @@ fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []c
     mutex.lock();
     defer mutex.unlock();
     writer.print(bold ++ "owl" ++ reset ++ " " ++ bold ++ color ++ level ++ reset ++ bold ++ ":" ++ reset ++ " " ++ format ++ "\n", args) catch return;
+}
+
+pub fn response(status: u9, time: u48, bytes: usize) void {
+    const human_time = utils.nanoseconds(time) catch "???ns";
+    defer std.heap.c_allocator.free(human_time);
+    const human_bytes = utils.bytes(bytes) catch "???b";
+    defer std.heap.c_allocator.free(human_bytes);
+    log(stdout, "", "res", "{d} took {s} {s}", .{ status, human_time, human_bytes });
 }
 
 pub fn trace(comptime format: []const u8, args: anytype) void {

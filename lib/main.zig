@@ -53,10 +53,8 @@ pub fn main() void {
             continue;
         };
         const stop = std.time.nanoTimestamp();
-        const duration: u48 = @intCast(stop - start);
-        const formatted = utils.nanoseconds(duration) catch "???ns";
-        defer std.heap.c_allocator.free(formatted);
-        logger.info("rendered uptime in {s}", .{formatted});
+        const time: u48 = @intCast(stop - start);
+        logger.response(200, time, buffer.len);
         defer std.heap.c_allocator.free(buffer);
         const wrote = connection.stream.write(buffer) catch |err| {
             logger.fault("could not send {d} bytes client {} ({s})", .{ buffer.len, connection.address, @errorName(err) });
