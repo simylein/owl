@@ -11,6 +11,7 @@ pub const App = struct {
 
 pub const Latest = struct {
     timestamp: u64,
+    latency: u48,
     healthyness: u8,
 };
 
@@ -43,7 +44,7 @@ pub fn init(comptime path: []const u8) std.ArrayList(App) {
     var tokenizer = std.mem.tokenize(u8, content, "\n");
     while (tokenizer.next()) |line| : (index += 1) {
         logger.trace("parsing app {d}...", .{index});
-        var app = App{ .id = undefined, .name = undefined, .address = undefined, .interval = undefined, .latest = Latest{ .timestamp = 0, .healthyness = 0 } };
+        var app = App{ .id = undefined, .name = undefined, .address = undefined, .interval = undefined, .latest = Latest{ .timestamp = 0, .latency = 0, .healthyness = 0 } };
         var token = std.mem.tokenize(u8, line, " ");
 
         if (apps.items.len >= 255) {

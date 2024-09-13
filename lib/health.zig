@@ -10,6 +10,7 @@ fn connect(address: std.net.Address) ?std.net.Stream {
         logger.debug("could not connect to {} ({s})", .{ address, @errorName(err) });
         return null;
     };
+    logger.debug("address {} is reachable", .{address});
     return stream;
 }
 
@@ -22,6 +23,19 @@ fn format(nanoseconds: u64) ![]const u8 {
         return utils.format("{d}µs", .{nanoseconds / 1_000});
     } else {
         return utils.format("{d}ns", .{nanoseconds});
+    }
+}
+
+fn log(app: *config.App) void {
+    const formatted = format(app.latest.latency) catch "???ns";
+    defer std.heap.c_allocator.free(formatted);
+    switch (app.latest.healthyness) {
+        0 => logger.warn("app {s} is unknown ({s})", .{ app.name, formatted }),
+        1 => logger.warn("app {s} is unhealthy ({s})", .{ app.name, formatted }),
+        2 => logger.warn("app {s} is unstable ({s})", .{ app.name, formatted }),
+        3 => logger.info("app {s} is recovering ({s})", .{ app.name, formatted }),
+        4 => logger.info("app {s} is healthy ({s})", .{ app.name, formatted }),
+        else => return,
     }
 }
 
@@ -42,26 +56,22 @@ pub fn check(app: *config.App, data: *database.Data) void {
         const healthy = if (stream != null) true else false;
 
         app.latest.timestamp = timestamp;
+        app.latest.latency = latency;
 
         if (healthy) {
             if (app.latest.healthyness == 0) {
                 app.latest.healthyness = 4;
+                log(app);
             }
             if (app.latest.healthyness < 4) {
                 app.latest.healthyness += 1;
+                log(app);
             }
         } else {
             if (app.latest.healthyness > 1) {
                 app.latest.healthyness -= 1;
+                log(app);
             }
-        }
-
-        const formatted = format(latency) catch "???ns";
-        defer std.heap.c_allocator.free(formatted);
-        if (healthy) {
-            logger.info("app {s} is healthy ({s})", .{ app.name, formatted });
-        } else {
-            logger.warn("app {s} is unhealthy ({s})", .{ app.name, formatted });
         }
 
         data.insert(.{ .app_id = app.id, .timestamp = timestamp, .latency = latency, .healthy = healthy }) catch |err| {
