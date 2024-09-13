@@ -90,7 +90,7 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
     const percent_color = try colorizeUptime(.{ .value = percent, .count = total_count });
     defer std.heap.c_allocator.free(percent_color);
 
-    const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\">{d:.2}%</span></p>", .{ percent_color, percent });
+    const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\" title=\"({d}/{d})\">{d:.2}%</span></p>", .{ percent_color, total_healthy, total_count, percent });
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 
