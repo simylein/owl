@@ -26,6 +26,7 @@ pub fn body(entries: *std.ArrayList(uptime.Uptime)) ![]u8 {
     try buffer.appendSlice("<head>");
     try buffer.appendSlice("<meta charset=\"utf-8\">");
     try buffer.appendSlice("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">");
+    try buffer.appendSlice("<meta name=\"description\" content=\"historical uptime for apps with telemetry\">");
     try buffer.appendSlice("<title>owl uptime</title>");
 
     try updraft.style(&buffer);
