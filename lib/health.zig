@@ -41,7 +41,20 @@ pub fn check(app: *config.App, data: *database.Data) void {
         const latency: u48 = @intCast(stop - start);
         const healthy = if (stream != null) true else false;
 
-        app.latest = config.Latest{ .timestamp = timestamp, .healthy = healthy };
+        app.latest.timestamp = timestamp;
+
+        if (healthy) {
+            if (app.latest.healthyness == 0) {
+                app.latest.healthyness = 4;
+            }
+            if (app.latest.healthyness < 4) {
+                app.latest.healthyness += 1;
+            }
+        } else {
+            if (app.latest.healthyness > 1) {
+                app.latest.healthyness -= 1;
+            }
+        }
 
         const formatted = format(latency) catch "???ns";
         defer std.heap.c_allocator.free(formatted);

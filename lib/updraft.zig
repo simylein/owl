@@ -38,10 +38,20 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".grid{display:grid}");
     try buffer.appendSlice(".grid-columns-32{grid-template-columns:repeat(32,minmax(0,1fr))}");
 
+    try buffer.appendSlice(".text-base{font-size:16px}");
+    try buffer.appendSlice(".font-normal{font-weight:400}");
+    try buffer.appendSlice(".font-semibold{font-weight:600}");
+
     try buffer.appendSlice(".rounded{border-radius:4px}");
     try buffer.appendSlice(".rounded-sm{border-radius:2px}");
 
     try buffer.appendSlice(".black{color:#000000}");
+    try buffer.appendSlice(".neutral-500{color:#737373}");
+    try buffer.appendSlice(".red-600{color:#dc2626}");
+    try buffer.appendSlice(".orange-600{color:#ea580c}");
+    try buffer.appendSlice(".yellow-600{color:#ca8a04}");
+    try buffer.appendSlice(".green-600{color:#16a34a}");
+
     try buffer.appendSlice(".bg-white{background-color:#ffffff}");
     try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
     try buffer.appendSlice(".bg-neutral-300{background-color:#d4d4d4}");
@@ -104,6 +114,12 @@ fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(prefers-color-scheme:dark){");
 
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
+    try buffer.appendSlice(".dark\\:neutral-400{color:#a3a3a3}");
+    try buffer.appendSlice(".dark\\:red-500{color:#ef4444}");
+    try buffer.appendSlice(".dark\\:orange-500{color:#f97316}");
+    try buffer.appendSlice(".dark\\:yellow-500{color:#eab308}");
+    try buffer.appendSlice(".dark\\:green-500{color:#22c55e}");
+
     try buffer.appendSlice(".dark\\:bg-black{background-color:#000000}");
     try buffer.appendSlice(".dark\\:bg-neutral-700{background-color:#404040}");
     try buffer.appendSlice(".dark\\:bg-neutral-900{background-color:#171717}");

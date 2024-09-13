@@ -54,9 +54,24 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice("<div class=\"w-full flex gap-4 sm:gap-8 justify-between\">");
 
-    const status = if (entry.app.latest.healthy) "online" else "offline";
+    const status = switch (entry.app.latest.healthyness) {
+        0 => "unknown",
+        1 => "offline",
+        2 => "unstable",
+        3 => "recovery",
+        4 => "online",
+        else => "",
+    };
+    const status_color = switch (entry.app.latest.healthyness) {
+        0 => "neutral-500 dark:neutral-400",
+        1 => "red-600 dark:red-500",
+        2 => "orange-600 dark:orange-500",
+        3 => "yellow-600 dark:yellow-500",
+        4 => "green-600 dark:green-500",
+        else => "",
+    };
 
-    const left = try utils.format("<p class=\"m-0\">{s} <span>{s}</span></p>", .{ entry.app.name, status });
+    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span></p>", .{ entry.app.name, status_color, status });
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
@@ -69,8 +84,10 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         total_count += count;
     }
     const percent: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0.0;
+    const percent_color = try colorizeUptime(.{ .value = percent, .count = total_count });
+    defer std.heap.c_allocator.free(percent_color);
 
-    const right = try utils.format("<p class=\"m-0\">uptime <span>{d:.2}%</span></p>", .{percent});
+    const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\">{d:.2}%</span></p>", .{ percent_color, percent });
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 
@@ -89,7 +106,7 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
         const percent = percentage(days[index]);
         const display = try visibility(index);
         defer std.heap.c_allocator.free(display);
-        const color = try colorize(percent);
+        const color = try colorizeDay(percent);
         defer std.heap.c_allocator.free(color);
         const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent.value });
         defer std.heap.c_allocator.free(slice);
@@ -129,7 +146,7 @@ fn visibility(index: u7) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-fn colorize(percent: Percentage) ![]u8 {
+fn colorizeDay(percent: Percentage) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     if (percent.value == 0 and percent.count == 0) {
@@ -142,6 +159,29 @@ fn colorize(percent: Percentage) ![]u8 {
         try buffer.appendSlice("bg-orange-400 dark:bg-orange-600");
     } else {
         try buffer.appendSlice("bg-red-400 dark:bg-red-600");
+    }
+
+    return buffer.toOwnedSlice();
+}
+
+const TotalPercentage = struct {
+    value: f32,
+    count: f32,
+};
+
+fn colorizeUptime(percent: TotalPercentage) ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    if (percent.value == 0 and percent.count == 0) {
+        try buffer.appendSlice("neutral-500 dark:neutral-400");
+    } else if (percent.value > 99.9) {
+        try buffer.appendSlice("green-600 dark:green-500");
+    } else if (percent.value > 99) {
+        try buffer.appendSlice("yellow-600 dark:yellow-500");
+    } else if (percent.value > 98) {
+        try buffer.appendSlice("orange-400 dark:orange-600");
+    } else {
+        try buffer.appendSlice("red-600 dark:red-500");
     }
 
     return buffer.toOwnedSlice();
