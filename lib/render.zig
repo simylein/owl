@@ -111,7 +111,7 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
         defer std.heap.c_allocator.free(display);
         const color = try colorizeDay(percent);
         defer std.heap.c_allocator.free(color);
-        const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}%\"></div>", .{ display, color, percent.value });
+        const slice = try utils.format("<div class=\"{s} h-8 rounded-sm {s}\" title=\"{d:.2}% ({d}/{d})\"></div>", .{ display, color, percent.value, percent.healthy, percent.count });
         defer std.heap.c_allocator.free(slice);
         try buffer.appendSlice(slice);
     }
@@ -122,13 +122,14 @@ fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
 const Percentage = struct {
     value: f16,
     count: f16,
+    healthy: f16,
 };
 
 fn percentage(day: uptime.Day) Percentage {
     const healthy: f16 = @floatFromInt(day.healthy);
     const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
     const value: f16 = if (count != 0) (healthy / count) * 100 else 0.0;
-    return Percentage{ .value = value, .count = count };
+    return Percentage{ .value = value, .count = count, .healthy = healthy };
 }
 
 fn visibility(index: u7) ![]u8 {
