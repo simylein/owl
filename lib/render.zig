@@ -131,16 +131,16 @@ fn percentage(day: uptime.Day) Percentage {
 fn visibility(index: u7) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    if (index < 32) {
-        try buffer.appendSlice("block");
-    } else if (index < 48) {
-        try buffer.appendSlice("hidden sm:block");
-    } else if (index < 64) {
-        try buffer.appendSlice("hidden md:block");
-    } else if (index < 80) {
-        try buffer.appendSlice("hidden lg:block");
-    } else if (index < 96) {
+    if (index < 16) {
         try buffer.appendSlice("hidden xl:block");
+    } else if (index < 32) {
+        try buffer.appendSlice("hidden lg:block");
+    } else if (index < 48) {
+        try buffer.appendSlice("hidden md:block");
+    } else if (index < 64) {
+        try buffer.appendSlice("hidden sm:block");
+    } else if (index < 80) {
+        try buffer.appendSlice("block");
     }
 
     return buffer.toOwnedSlice();
