@@ -56,10 +56,10 @@ pub fn check(app: *config.App, data: *database.Data) void {
         };
 
         const interval: u64 = @intCast(app.interval);
-        const wait = interval * std.time.ns_per_s - latency;
-
-        if (wait > 0) {
-            std.time.sleep(wait);
+        if (latency > (interval * std.time.ns_per_s)) {
+            continue;
         }
+
+        std.time.sleep(interval * std.time.ns_per_s - latency);
     }
 }
