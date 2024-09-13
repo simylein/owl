@@ -19,11 +19,11 @@ pub fn nanoseconds(ns: u64) ![]const u8 {
     } else if (ns > 2_000_000) {
         return format("{d:.2}ms", .{floating / 1_000_000});
     } else if (ns > 200_000) {
-        return format("{d:.0}µs", .{floating / 1_000});
+        return format("{d:.0}us", .{floating / 1_000});
     } else if (ns > 20_000) {
-        return format("{d:.1}µs", .{floating / 1_000});
+        return format("{d:.1}us", .{floating / 1_000});
     } else if (ns > 2_000) {
-        return format("{d:.2}µs", .{floating / 1_000});
+        return format("{d:.2}us", .{floating / 1_000});
     } else {
         return format("{d:.0}ns", .{floating});
     }
