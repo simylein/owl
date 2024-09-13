@@ -4,6 +4,8 @@ const logger = @import("logger.zig");
 pub var host: []u8 = undefined;
 pub var port: u16 = 4000;
 pub var log_level: u3 = 4;
+pub var log_requests: bool = true;
+pub var log_responses: bool = true;
 
 pub fn init() void {
     var args = std.process.args();
@@ -64,6 +66,36 @@ pub fn init() void {
                 }
             } else {
                 logger.fault("please provide a log level", .{});
+                std.process.exit(1);
+            }
+        }
+        if (std.mem.eql(u8, arg, "--log-requests")) {
+            if (args.next()) |value| {
+                if (std.mem.eql(u8, value, "true")) {
+                    log_requests = true;
+                } else if (std.mem.eql(u8, value, "false")) {
+                    log_requests = false;
+                } else {
+                    logger.fault("log requests must be one of true false", .{});
+                    std.process.exit(1);
+                }
+            } else {
+                logger.fault("please provide a log requests value", .{});
+                std.process.exit(1);
+            }
+        }
+        if (std.mem.eql(u8, arg, "--log-responses")) {
+            if (args.next()) |value| {
+                if (std.mem.eql(u8, value, "true")) {
+                    log_responses = true;
+                } else if (std.mem.eql(u8, value, "false")) {
+                    log_responses = false;
+                } else {
+                    logger.fault("log responses must be one of true false", .{});
+                    std.process.exit(1);
+                }
+            } else {
+                logger.fault("please provide a log responses value", .{});
                 std.process.exit(1);
             }
         }

@@ -5,6 +5,7 @@ const database = @import("database.zig");
 const health = @import("health.zig");
 const logger = @import("logger.zig");
 const render = @import("render.zig");
+const request = @import("request.zig");
 const uptime = @import("uptime.zig");
 const utils = @import("utils.zig");
 
@@ -48,16 +49,22 @@ pub fn main() void {
         }
         logger.debug("rendering uptime...", .{});
         const start = std.time.nanoTimestamp();
-        const buffer = handle(apps, &data) catch |err| {
+        const req = request.parse(connection) catch |err| {
+            logger.fault("could parse request ({s})", .{@errorName(err)});
+            continue;
+        };
+        defer req.deinit();
+        logger.request(req.method, req.pathname, connection.address);
+        const res = handle(apps, &data) catch |err| {
             logger.fault("could not handle client {} ({s})", .{ connection.address, @errorName(err) });
             continue;
         };
         const stop = std.time.nanoTimestamp();
         const time: u48 = @intCast(stop - start);
-        logger.response(200, time, buffer.len);
-        defer std.heap.c_allocator.free(buffer);
-        const wrote = connection.stream.write(buffer) catch |err| {
-            logger.fault("could not send {d} bytes client {} ({s})", .{ buffer.len, connection.address, @errorName(err) });
+        logger.response(200, time, res.len);
+        defer std.heap.c_allocator.free(res);
+        const wrote = connection.stream.write(res) catch |err| {
+            logger.fault("could not send {d} bytes client {} ({s})", .{ res.len, connection.address, @errorName(err) });
             continue;
         };
         logger.debug("wrote {d} bytes to {}", .{ wrote, connection.address });

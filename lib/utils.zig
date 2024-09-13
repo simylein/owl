@@ -47,3 +47,29 @@ pub fn nanoseconds(ns: u64) ![]const u8 {
         return format("{d:.0}ns", .{floating});
     }
 }
+
+pub const Iterator = struct {
+    input: []const u8,
+    index: usize,
+
+    pub fn init(input: []const u8) Iterator {
+        return Iterator{ .input = input, .index = 0 };
+    }
+
+    pub fn next(self: *Iterator) ?u8 {
+        if (self.index >= self.input.len) {
+            return null;
+        }
+        const byte = self.input[self.index];
+        self.index += 1;
+        return byte;
+    }
+
+    pub fn slice(self: *Iterator, backwards: usize) ![]const u8 {
+        if (self.index == 0 or self.index - 1 < backwards) {
+            return error.OutOfBounds;
+        }
+        const index = self.index - 1;
+        return self.input[index - backwards .. index];
+    }
+};
