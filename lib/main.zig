@@ -46,11 +46,17 @@ pub fn main() void {
             logger.trace("closed connection to {}", .{connection.address});
             connection.stream.close();
         }
-        logger.info("rendering uptime...", .{});
+        logger.debug("rendering uptime...", .{});
+        const start = std.time.nanoTimestamp();
         const buffer = handle(apps, &data) catch |err| {
             logger.fault("could not handle client {} ({s})", .{ connection.address, @errorName(err) });
             continue;
         };
+        const stop = std.time.nanoTimestamp();
+        const duration: u48 = @intCast(stop - start);
+        const formatted = utils.nanoseconds(duration) catch "???ns";
+        defer std.heap.c_allocator.free(formatted);
+        logger.info("rendered uptime in {s}", .{formatted});
         defer std.heap.c_allocator.free(buffer);
         const wrote = connection.stream.write(buffer) catch |err| {
             logger.fault("could not send {d} bytes client {} ({s})", .{ buffer.len, connection.address, @errorName(err) });
@@ -67,11 +73,11 @@ fn handle(apps: std.ArrayList(config.App), data: *database.Data) ![]u8 {
 
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    logger.debug("rendering body...", .{});
+    logger.trace("rendering body...", .{});
     const body = try render.body(&uptimes);
     defer std.heap.c_allocator.free(body);
 
-    logger.debug("rendering head...", .{});
+    logger.trace("rendering head...", .{});
     const head = try render.head(body.len);
     defer std.heap.c_allocator.free(head);
 

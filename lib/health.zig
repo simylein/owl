@@ -14,20 +14,8 @@ fn connect(address: std.net.Address) ?std.net.Stream {
     return stream;
 }
 
-fn format(nanoseconds: u64) ![]const u8 {
-    if (nanoseconds > 2_000_000_000) {
-        return utils.format("{d}s", .{nanoseconds / 1_000_000_000});
-    } else if (nanoseconds > 2_000_000) {
-        return utils.format("{d}ms", .{nanoseconds / 1_000_000});
-    } else if (nanoseconds > 2_000) {
-        return utils.format("{d}µs", .{nanoseconds / 1_000});
-    } else {
-        return utils.format("{d}ns", .{nanoseconds});
-    }
-}
-
 fn log(app: *config.App) void {
-    const formatted = format(app.latest.latency) catch "???ns";
+    const formatted = utils.nanoseconds(app.latest.latency) catch "???ns";
     defer std.heap.c_allocator.free(formatted);
     switch (app.latest.healthyness) {
         0 => logger.warn("app {s} is unknown ({s})", .{ app.name, formatted }),
