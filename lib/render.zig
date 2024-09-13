@@ -86,11 +86,11 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         total_healthy += healthy;
         total_count += count;
     }
-    const percent: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0.0;
+    const percent: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0;
     const percent_color = try colorizeUptime(.{ .value = percent, .count = total_count });
     defer std.heap.c_allocator.free(percent_color);
 
-    const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\" title=\"({d}/{d})\">{d:.2}%</span></p>", .{ percent_color, total_healthy, total_count, percent });
+    const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\" title=\"{d:.3}% ({d}/{d})\">{d:.2}%</span></p>", .{ percent_color, percent, total_healthy, total_count, percent });
     defer std.heap.c_allocator.free(right);
     try buffer.appendSlice(right);
 
@@ -128,7 +128,7 @@ const Percentage = struct {
 fn percentage(day: uptime.Day) Percentage {
     const healthy: f16 = @floatFromInt(day.healthy);
     const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
-    const value: f16 = if (count != 0) (healthy / count) * 100 else 0.0;
+    const value: f16 = if (count != 0) (healthy / count) * 100 else 0;
     return Percentage{ .value = value, .count = count, .healthy = healthy };
 }
 
