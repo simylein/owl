@@ -70,8 +70,10 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         4 => "green-600 dark:green-500",
         else => "",
     };
+    const latency = utils.nanoseconds(entry.app.latest.latency) catch "???ns";
+    defer std.heap.c_allocator.free(latency);
 
-    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span></p>", .{ entry.app.name, status_color, status });
+    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span> <span class=\"hidden sm:inline font-semibold neutral-400 dark:neutral-500\">({s})</span></p>", .{ entry.app.name, status_color, status, latency });
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 

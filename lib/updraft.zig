@@ -46,6 +46,7 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".rounded-sm{border-radius:2px}");
 
     try buffer.appendSlice(".black{color:#000000}");
+    try buffer.appendSlice(".neutral-400{color:#a3a3a3}");
     try buffer.appendSlice(".neutral-500{color:#737373}");
     try buffer.appendSlice(".red-600{color:#dc2626}");
     try buffer.appendSlice(".orange-600{color:#ea580c}");
@@ -71,6 +72,7 @@ fn small(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".sm\\:gap-8{gap:32px}");
 
     try buffer.appendSlice(".sm\\:block{display:block}");
+    try buffer.appendSlice(".sm\\:inline{display:inline}");
 
     try buffer.appendSlice(".sm\\:grid-columns-48{grid-template-columns:repeat(48,minmax(0,1fr))}");
 
@@ -114,6 +116,7 @@ fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(prefers-color-scheme:dark){");
 
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
+    try buffer.appendSlice(".dark\\:neutral-500{color:#737373}");
     try buffer.appendSlice(".dark\\:neutral-400{color:#a3a3a3}");
     try buffer.appendSlice(".dark\\:red-500{color:#ef4444}");
     try buffer.appendSlice(".dark\\:orange-500{color:#f97316}");
