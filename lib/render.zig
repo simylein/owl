@@ -73,7 +73,7 @@ fn container(app: database.App, buffer: *std.ArrayList(u8)) !void {
     const latency = utils.nanoseconds(app.latest.latency) catch "???ns";
     defer std.heap.c_allocator.free(latency);
 
-    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span> <span class=\"hidden sm:inline font-semibold neutral-400 dark:neutral-500\">({s})</span></p>", .{ app.name, status_color, status, latency });
+    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span> <span class=\"hidden sm:inline font-semibold neutral-400 dark:neutral-500\">{s}</span></p>", .{ app.name, status_color, status, latency });
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
