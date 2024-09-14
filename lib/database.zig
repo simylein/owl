@@ -127,7 +127,7 @@ fn parseConfig(comptime path: []const u8, data: *Data) std.fs.File {
             std.process.exit(1);
         }
         for (name) |char| {
-            if ((char < 97 or char > 122) and char != 45) {
+            if ((char < 'a' or char > 'z') and char != '-') {
                 logger.fault("app {d} name must contain lowercase letters or hyphons", .{index});
                 std.process.exit(1);
             }
