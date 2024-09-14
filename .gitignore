@@ -8,7 +8,7 @@
 /owl.cfg
 
 # data storage
-/owl.bin
+/owl.data
 
 # compiled executable
 /owl
