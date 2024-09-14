@@ -3,6 +3,9 @@ const logger = @import("logger.zig");
 
 pub var host: []u8 = undefined;
 pub var port: u16 = 4000;
+
+pub var bucket_size: u24 = std.time.s_per_day;
+
 pub var log_level: u3 = 4;
 pub var log_requests: bool = true;
 pub var log_responses: bool = true;
@@ -34,6 +37,7 @@ pub fn init(args: *std.process.ArgIterator) void {
                 std.process.exit(1);
             }
         }
+
         if (std.mem.eql(u8, arg, "--port")) {
             if (args.next()) |value| {
                 port = std.fmt.parseInt(u16, value, 10) catch {
@@ -45,6 +49,19 @@ pub fn init(args: *std.process.ArgIterator) void {
                 std.process.exit(1);
             }
         }
+
+        if (std.mem.eql(u8, arg, "--bucket-size")) {
+            if (args.next()) |value| {
+                bucket_size = std.fmt.parseInt(u24, value, 10) catch {
+                    logger.fault("bucket size must be between 0 and 16777216", .{});
+                    std.process.exit(1);
+                };
+            } else {
+                logger.fault("please provide a bucket size", .{});
+                std.process.exit(1);
+            }
+        }
+
         if (std.mem.eql(u8, arg, "--log-level")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "trace")) {
@@ -68,6 +85,7 @@ pub fn init(args: *std.process.ArgIterator) void {
                 std.process.exit(1);
             }
         }
+
         if (std.mem.eql(u8, arg, "--log-requests")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {
@@ -83,6 +101,7 @@ pub fn init(args: *std.process.ArgIterator) void {
                 std.process.exit(1);
             }
         }
+
         if (std.mem.eql(u8, arg, "--log-responses")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {

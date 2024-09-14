@@ -1,4 +1,5 @@
 const std = @import("std");
+const config = @import("config.zig");
 const database = @import("database.zig");
 const logger = @import("logger.zig");
 const utils = @import("utils.zig");
@@ -29,13 +30,13 @@ pub fn check(data: *const database.Data, index: u8) void {
     std.time.sleep(std.time.ns_per_s);
     var app = &data.apps.items[index];
     const init = std.time.timestamp();
-    var reflown: u64 = @intCast(init - @mod(init, std.time.s_per_day));
+    var reflown: u64 = @intCast(init - @mod(init, config.bucket_size));
 
     while (true) {
         logger.trace("healthchecking {s}...", .{app.name});
 
         const time = std.time.timestamp();
-        const today: u64 = @intCast(time - @mod(time, std.time.s_per_day));
+        const today: u64 = @intCast(time - @mod(time, config.bucket_size));
         if (today != reflown) {
             logger.debug("shifting days for app {s}...", .{app.name});
             app.shift();
@@ -56,7 +57,7 @@ pub fn check(data: *const database.Data, index: u8) void {
         app.latest.timestamp = timestamp;
         app.latest.latency = latency;
 
-        const day = utils.bucket(timestamp, timestamp, std.time.s_per_day, 96);
+        const day = utils.bucket(timestamp, timestamp, config.bucket_size, 96);
         app.days[day].latency += latency;
         if (healthy) {
             app.days[day].healthy += 1;

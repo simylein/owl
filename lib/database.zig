@@ -1,4 +1,5 @@
 const std = @import("std");
+const config = @import("config.zig");
 const logger = @import("logger.zig");
 const utils = @import("utils.zig");
 
@@ -194,7 +195,7 @@ fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
         const healthy = std.mem.readInt(u8, slice[15..16], std.builtin.Endian.little) == 1;
 
         const now: u64 = @intCast(std.time.timestamp());
-        if (now - timestamp > std.time.s_per_day * 96) {
+        if (now - timestamp > config.bucket_size * 96) {
             continue;
         }
 
@@ -203,7 +204,7 @@ fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
             continue;
         }
 
-        const day: u8 = utils.bucket(now, timestamp, std.time.s_per_day, 96);
+        const day: u8 = utils.bucket(now, timestamp, config.bucket_size, 96);
         if (data.apps.items[app_id].days[day].timestamp > timestamp) {
             data.apps.items[app_id].days[day].timestamp = timestamp;
             data.apps.items[app_id].days[day].timestamp += latency;
@@ -219,12 +220,12 @@ fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
     return file;
 }
 
-pub fn init(comptime config: []const u8, comptime database: []const u8) Data {
+pub fn init(comptime config_path: []const u8, comptime database_path: []const u8) Data {
     const apps = std.ArrayList(App).init(std.heap.c_allocator);
     var data = Data{ .config = undefined, .database = undefined, .apps = apps };
 
-    data.config = parseConfig(config, &data);
-    data.database = parseDatabase(database, &data);
+    data.config = parseConfig(config_path, &data);
+    data.database = parseDatabase(database_path, &data);
 
     return data;
 }
