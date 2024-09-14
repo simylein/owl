@@ -18,6 +18,14 @@ pub const App = struct {
     interval: u8,
     latest: Latest,
     days: [96]Day,
+
+    pub fn shift(self: *App) void {
+        var index: u7 = 0;
+        while (index < self.days.len - 1) : (index += 1) {
+            self.days[index] = self.days[index + 1];
+        }
+        self.days[self.days.len - 1] = Day{ .timestamp = std.math.maxInt(u64), .latency = 0, .healthy = 0, .unhealthy = 0 };
+    }
 };
 
 pub const Latest = struct {

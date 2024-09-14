@@ -28,9 +28,17 @@ fn log(app: *database.App) void {
 pub fn check(data: *const database.Data, index: u8) void {
     std.time.sleep(std.time.ns_per_s);
     var app = &data.apps.items[index];
+    var reflow: u64 = @intCast(std.time.timestamp());
 
     while (true) {
         logger.trace("healthchecking {s}...", .{app.name});
+
+        const now: u64 = @intCast(std.time.timestamp());
+        if (now - reflow > std.time.s_per_day) {
+            logger.debug("shifting days for app {s}...", .{app.name});
+            app.shift();
+            reflow = now;
+        }
 
         const start = std.time.nanoTimestamp();
         const stream = connect(app.address);
