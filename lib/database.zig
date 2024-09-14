@@ -6,7 +6,6 @@ const utils = @import("utils.zig");
 var mutex = std.Thread.Mutex{};
 
 pub const Day = struct {
-    timestamp: u64,
     latency: u64,
     healthy: u16,
     unhealthy: u16,
@@ -25,7 +24,7 @@ pub const App = struct {
         while (index < self.days.len - 1) : (index += 1) {
             self.days[index] = self.days[index + 1];
         }
-        self.days[self.days.len - 1] = Day{ .timestamp = std.math.maxInt(u64), .latency = 0, .healthy = 0, .unhealthy = 0 };
+        self.days[self.days.len - 1] = Day{ .latency = 0, .healthy = 0, .unhealthy = 0 };
     }
 };
 
@@ -93,7 +92,7 @@ fn parseConfig(comptime path: []const u8, data: *Data) std.fs.File {
         var app = App{ .id = undefined, .name = undefined, .address = undefined, .interval = undefined, .latest = undefined, .days = undefined };
         var ind: u7 = 0;
         while (ind < app.days.len) : (ind += 1) {
-            app.days[ind] = Day{ .timestamp = std.math.maxInt(u64), .latency = 0, .healthy = 0, .unhealthy = 0 };
+            app.days[ind] = Day{ .latency = 0, .healthy = 0, .unhealthy = 0 };
         }
         app.latest = Latest{ .timestamp = 0, .latency = 0, .healthyness = 0 };
 
@@ -205,10 +204,7 @@ fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
         }
 
         const day: u8 = utils.bucket(now, timestamp, config.bucket_size, 96);
-        if (data.apps.items[app_id].days[day].timestamp > timestamp) {
-            data.apps.items[app_id].days[day].timestamp = timestamp;
-            data.apps.items[app_id].days[day].timestamp += latency;
-        }
+        data.apps.items[app_id].days[day].latency += latency;
         if (healthy) {
             data.apps.items[app_id].days[day].healthy += 1;
         } else {
