@@ -5,7 +5,7 @@ const utils = @import("utils.zig");
 
 fn connect(address: std.net.Address) ?std.net.Stream {
     const stream = std.net.tcpConnectToAddress(address) catch |err| {
-        logger.debug("could not connect to {} ({s})", .{ address, @errorName(err) });
+        logger.debug("failed to connect to {} ({s})", .{ address, @errorName(err) });
         return null;
     };
     logger.debug("address {} is reachable", .{address});
