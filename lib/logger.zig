@@ -24,7 +24,7 @@ fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []c
 
 pub fn request(method: []u8, pathname: []u8, address: std.net.Address) void {
     if (config.log_requests) {
-        log(stdout, "", "res", "{s} {s} from {}", .{ method, pathname, address });
+        log(stdout, "", "req", "{s} {s} from {}", .{ method, pathname, address });
     }
 }
 
