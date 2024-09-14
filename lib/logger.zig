@@ -1,5 +1,5 @@
 const std = @import("std");
-const arguments = @import("arguments.zig");
+const config = @import("config.zig");
 const utils = @import("utils.zig");
 
 const stdout = std.io.getStdOut().writer();
@@ -23,13 +23,13 @@ fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []c
 }
 
 pub fn request(method: []u8, pathname: []u8, address: std.net.Address) void {
-    if (arguments.log_requests) {
+    if (config.log_requests) {
         log(stdout, "", "res", "{s} {s} from {}", .{ method, pathname, address });
     }
 }
 
 pub fn response(status: u9, time: u48, bytes: usize) void {
-    if (arguments.log_responses) {
+    if (config.log_responses) {
         const human_time = utils.nanoseconds(time) catch "???ns";
         defer std.heap.c_allocator.free(human_time);
         const human_bytes = utils.bytes(bytes) catch "???b";
@@ -39,37 +39,37 @@ pub fn response(status: u9, time: u48, bytes: usize) void {
 }
 
 pub fn trace(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 6) {
+    if (config.log_level >= 6) {
         log(stdout, blue, "trace", format, args);
     }
 }
 
 pub fn debug(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 5) {
+    if (config.log_level >= 5) {
         log(stdout, cyan, "debug", format, args);
     }
 }
 
 pub fn info(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 4) {
+    if (config.log_level >= 4) {
         log(stdout, green, "info", format, args);
     }
 }
 
 pub fn warn(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 3) {
+    if (config.log_level >= 3) {
         log(stderr, yellow, "warn", format, args);
     }
 }
 
 pub fn fault(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 2) {
+    if (config.log_level >= 2) {
         log(stderr, red, "fault", format, args);
     }
 }
 
 pub fn panic(comptime format: []const u8, args: anytype) void {
-    if (arguments.log_level >= 1) {
+    if (config.log_level >= 1) {
         log(stderr, purple, "panic", format, args);
     }
 }

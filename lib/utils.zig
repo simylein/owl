@@ -1,5 +1,11 @@
 const std = @import("std");
 
+pub fn bucket(now: u64, timestamp: u64, timespan: u32, max: u7) u7 {
+    const distance = now - (now % timespan) - (timestamp - (timestamp % timespan));
+    const index: u7 = @intCast(if (distance < 0) 0 else distance / timespan);
+    return max - index - 1;
+}
+
 pub fn format(comptime fmt: []const u8, args: anytype) ![]u8 {
     return try std.fmt.allocPrint(std.heap.c_allocator, fmt, args);
 }

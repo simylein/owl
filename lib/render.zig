@@ -1,7 +1,6 @@
 const std = @import("std");
-const config = @import("config.zig");
+const database = @import("database.zig");
 const updraft = @import("updraft.zig");
-const uptime = @import("uptime.zig");
 const utils = @import("utils.zig");
 
 pub fn head(length: usize) ![]u8 {
@@ -17,7 +16,7 @@ pub fn head(length: usize) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-pub fn body(entries: *std.ArrayList(uptime.Uptime)) ![]u8 {
+pub fn body(data: *const database.Data) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     try buffer.appendSlice("<!doctype html>");
@@ -36,8 +35,8 @@ pub fn body(entries: *std.ArrayList(uptime.Uptime)) ![]u8 {
     try buffer.appendSlice("<body class=\"m-0 black dark:white bg-neutral-100 dark:bg-neutral-900\">");
     try buffer.appendSlice("<main class=\"flex flex-col mx-4 my-6 sm:mx-8 sm:my-9 md:mx-16 md:my-12\">");
     try buffer.appendSlice("<div class=\"flex gap-2 sm:gap-4 flex-col\">");
-    for (entries.items) |entry| {
-        try container(entry, &buffer);
+    for (data.apps.items) |app| {
+        try container(app, &buffer);
     }
     try buffer.appendSlice("</div>");
     try buffer.appendSlice("</main>");
@@ -48,14 +47,14 @@ pub fn body(entries: *std.ArrayList(uptime.Uptime)) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
-    const content = try utils.format("<div id=\"{d}\" class=\"flex gap-2 flex-col p-4 rounded bg-white dark:bg-black\">", .{entry.app.id});
+fn container(app: database.App, buffer: *std.ArrayList(u8)) !void {
+    const content = try utils.format("<div id=\"{d}\" class=\"flex gap-2 flex-col p-4 rounded bg-white dark:bg-black\">", .{app.id});
     defer std.heap.c_allocator.free(content);
     try buffer.appendSlice(content);
 
     try buffer.appendSlice("<div class=\"w-full flex gap-4 sm:gap-8 justify-between\">");
 
-    const status = switch (entry.app.latest.healthyness) {
+    const status = switch (app.latest.healthyness) {
         0 => "unknown",
         1 => "offline",
         2 => "unstable",
@@ -63,7 +62,7 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         4 => "online",
         else => "",
     };
-    const status_color = switch (entry.app.latest.healthyness) {
+    const status_color = switch (app.latest.healthyness) {
         0 => "neutral-500 dark:neutral-400",
         1 => "red-600 dark:red-500",
         2 => "orange-600 dark:orange-500",
@@ -71,16 +70,16 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
         4 => "green-600 dark:green-500",
         else => "",
     };
-    const latency = utils.nanoseconds(entry.app.latest.latency) catch "???ns";
+    const latency = utils.nanoseconds(app.latest.latency) catch "???ns";
     defer std.heap.c_allocator.free(latency);
 
-    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span> <span class=\"hidden sm:inline font-semibold neutral-400 dark:neutral-500\">({s})</span></p>", .{ entry.app.name, status_color, status, latency });
+    const left = try utils.format("<p class=\"m-0 font-normal\">{s} <span class=\"font-semibold {s}\">{s}</span> <span class=\"hidden sm:inline font-semibold neutral-400 dark:neutral-500\">({s})</span></p>", .{ app.name, status_color, status, latency });
     defer std.heap.c_allocator.free(left);
     try buffer.appendSlice(left);
 
     var total_healthy: f32 = 0;
     var total_count: f32 = 0;
-    for (entry.days) |day| {
+    for (app.days) |day| {
         const healthy: f16 = @floatFromInt(day.healthy);
         const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
         total_healthy += healthy;
@@ -96,12 +95,12 @@ fn container(entry: uptime.Uptime, buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice("</div>");
 
-    try timeline(entry.days, buffer);
+    try timeline(app.days, buffer);
 
     try buffer.appendSlice("</div>");
 }
 
-fn timeline(days: [96]uptime.Day, buffer: *std.ArrayList(u8)) !void {
+fn timeline(days: [96]database.Day, buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("<div class=\"grid gap-0.5 grid-columns-32 sm:grid-columns-48 md:grid-columns-64 lg:grid-columns-80 xl:grid-columns-96\">");
 
     var index: u7 = 0;
@@ -125,7 +124,7 @@ const Percentage = struct {
     healthy: f16,
 };
 
-fn percentage(day: uptime.Day) Percentage {
+fn percentage(day: database.Day) Percentage {
     const healthy: f16 = @floatFromInt(day.healthy);
     const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
     const value: f16 = if (count != 0) (healthy / count) * 100 else 0;
