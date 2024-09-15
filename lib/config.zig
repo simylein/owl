@@ -4,6 +4,8 @@ const logger = @import("logger.zig");
 pub var host: []u8 = undefined;
 pub var port: u16 = 4000;
 
+pub var config_path: []u8 = undefined;
+pub var database_path: []u8 = undefined;
 pub var bucket_size: u24 = std.time.s_per_day;
 
 pub var log_level: u3 = 4;
@@ -16,12 +18,26 @@ pub fn init(args: *std.process.ArgIterator) void {
         std.process.exit(1);
     }
 
-    const default = "127.0.0.1";
-    host = std.heap.c_allocator.alloc(u8, default.len) catch |err| {
-        logger.panic("failed to allocate {d} bytes ({s})", .{ default.len, @errorName(err) });
+    const default_host = "127.0.0.1";
+    host = std.heap.c_allocator.alloc(u8, default_host.len) catch |err| {
+        logger.panic("failed to allocate {d} bytes ({s})", .{ default_host.len, @errorName(err) });
         std.process.exit(1);
     };
-    std.mem.copyForwards(u8, host, default);
+    std.mem.copyForwards(u8, host, default_host);
+
+    const default_config_path = "owl.cfg";
+    config_path = std.heap.c_allocator.alloc(u8, default_config_path.len) catch |err| {
+        logger.panic("failed to allocate {d} bytes ({s})", .{ default_config_path.len, @errorName(err) });
+        std.process.exit(1);
+    };
+    std.mem.copyForwards(u8, config_path, default_config_path);
+
+    const default_database_path = "owl.data";
+    database_path = std.heap.c_allocator.alloc(u8, default_database_path.len) catch |err| {
+        logger.panic("failed to allocate {d} bytes ({s})", .{ default_database_path.len, @errorName(err) });
+        std.process.exit(1);
+    };
+    std.mem.copyForwards(u8, database_path, default_database_path);
 
     while (args.next()) |arg| {
         if (std.mem.eql(u8, arg, "--host")) {
@@ -46,6 +62,34 @@ pub fn init(args: *std.process.ArgIterator) void {
                 };
             } else {
                 logger.fault("please provide a port", .{});
+                std.process.exit(1);
+            }
+        }
+
+        if (std.mem.eql(u8, arg, "--config-path")) {
+            if (args.next()) |value| {
+                std.heap.c_allocator.free(config_path);
+                config_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
+                    logger.panic("failed to allocate {d} bytes ({s})", .{ value.len, @errorName(err) });
+                    std.process.exit(1);
+                };
+                std.mem.copyForwards(u8, config_path, value);
+            } else {
+                logger.fault("please provide a config path", .{});
+                std.process.exit(1);
+            }
+        }
+
+        if (std.mem.eql(u8, arg, "--database-path")) {
+            if (args.next()) |value| {
+                std.heap.c_allocator.free(database_path);
+                database_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
+                    logger.panic("failed to allocate {d} bytes ({s})", .{ value.len, @errorName(err) });
+                    std.process.exit(1);
+                };
+                std.mem.copyForwards(u8, database_path, value);
+            } else {
+                logger.fault("please provide a database path", .{});
                 std.process.exit(1);
             }
         }

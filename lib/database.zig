@@ -59,7 +59,7 @@ pub const Data = struct {
     }
 };
 
-fn parseConfig(comptime path: []const u8, data: *Data) std.fs.File {
+fn parseConfig(path: []const u8, data: *Data) std.fs.File {
     logger.trace("opening {s}...", .{path});
     const file = std.fs.cwd().openFile(path, .{ .mode = std.fs.File.OpenMode.read_only, .lock = std.fs.File.Lock.exclusive }) catch |err| {
         logger.panic("failed to open {s} ({s})", .{ path, @errorName(err) });
@@ -158,7 +158,7 @@ fn parseConfig(comptime path: []const u8, data: *Data) std.fs.File {
     return file;
 }
 
-fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
+fn parseDatabase(path: []const u8, data: *Data) std.fs.File {
     logger.trace("opening {s}...", .{path});
     const file = std.fs.cwd().openFile(path, .{ .mode = std.fs.File.OpenMode.read_write, .lock = std.fs.File.Lock.exclusive }) catch |err| {
         logger.panic("failed to open {s} ({s})", .{ path, @errorName(err) });
@@ -216,7 +216,7 @@ fn parseDatabase(comptime path: []const u8, data: *Data) std.fs.File {
     return file;
 }
 
-pub fn init(comptime config_path: []const u8, comptime database_path: []const u8) Data {
+pub fn init(config_path: []const u8, database_path: []const u8) Data {
     const apps = std.ArrayList(App).init(std.heap.c_allocator);
     var data = Data{ .config = undefined, .database = undefined, .apps = apps };
 

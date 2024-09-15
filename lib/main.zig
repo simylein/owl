@@ -10,7 +10,7 @@ pub fn main() void {
     var args = std.process.args();
     config.init(&args);
 
-    const data = database.init("owl.cfg", "owl.data");
+    const data = database.init(config.config_path, config.database_path);
     var index: u8 = 0;
     while (index < data.apps.items.len) : (index += 1) {
         logger.debug("spawning {s} healthcheck thread...", .{data.apps.items[index].name});
