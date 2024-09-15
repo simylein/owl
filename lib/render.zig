@@ -182,7 +182,7 @@ fn colorizeUptime(percent: TotalPercentage) ![]u8 {
     } else if (percent.value > 99) {
         try buffer.appendSlice("yellow-600 dark:yellow-500");
     } else if (percent.value > 98) {
-        try buffer.appendSlice("orange-400 dark:orange-600");
+        try buffer.appendSlice("orange-600 dark:orange-500");
     } else {
         try buffer.appendSlice("red-600 dark:red-500");
     }
