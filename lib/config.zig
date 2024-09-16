@@ -1,8 +1,8 @@
 const std = @import("std");
 const logger = @import("logger.zig");
 
-pub var host: []u8 = undefined;
-pub var port: u16 = 4000;
+pub var address: []u8 = undefined;
+pub var port: u16 = 4711;
 
 pub var config_path: []u8 = undefined;
 pub var database_path: []u8 = undefined;
@@ -18,12 +18,12 @@ pub fn init(args: *std.process.ArgIterator) void {
         std.process.exit(1);
     }
 
-    const default_host = "127.0.0.1";
-    host = std.heap.c_allocator.alloc(u8, default_host.len) catch |err| {
-        logger.panic("failed to allocate {d} bytes ({s})", .{ default_host.len, @errorName(err) });
+    const default_address = "127.0.0.1";
+    address = std.heap.c_allocator.alloc(u8, default_address.len) catch |err| {
+        logger.panic("failed to allocate {d} bytes ({s})", .{ default_address.len, @errorName(err) });
         std.process.exit(1);
     };
-    std.mem.copyForwards(u8, host, default_host);
+    std.mem.copyForwards(u8, address, default_address);
 
     const default_config_path = "owl.cfg";
     config_path = std.heap.c_allocator.alloc(u8, default_config_path.len) catch |err| {
@@ -40,21 +40,43 @@ pub fn init(args: *std.process.ArgIterator) void {
     std.mem.copyForwards(u8, database_path, default_database_path);
 
     while (args.next()) |arg| {
-        if (std.mem.eql(u8, arg, "--host")) {
+        if (std.mem.eql(u8, arg, "--help") or std.mem.eql(u8, arg, "-h")) {
+            const human_log_level = switch (log_level) {
+                6 => "trace",
+                5 => "debug",
+                4 => "info",
+                3 => "warn",
+                2 => "fault",
+                1 => "panic",
+                else => "???",
+            };
+            logger.info("available command line flags", .{});
+            logger.info("--address        -a   ipv4 or ipv6 address               ({s})", .{default_address});
+            logger.info("--port           -p   integer from 0 to 65535            ({d})", .{port});
+            logger.info("--config-path    -cp  path to config file                ({s})", .{default_config_path});
+            logger.info("--database-path  -dp  path to database file              ({s})", .{default_database_path});
+            logger.info("--bucket-size    -bs  integer from 0 to 16777216         ({d})", .{bucket_size});
+            logger.info("--log-level      -ll  trace debug info warn fault panic  ({s})", .{human_log_level});
+            logger.info("--log-requests   -lq  boolean true or false              ({})", .{log_requests});
+            logger.info("--log-responses  -ls  boolean true or false              ({})", .{log_responses});
+            std.process.exit(0);
+        }
+
+        if (std.mem.eql(u8, arg, "--address") or std.mem.eql(u8, arg, "-a")) {
             if (args.next()) |value| {
-                std.heap.c_allocator.free(host);
-                host = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
+                std.heap.c_allocator.free(address);
+                address = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
                     logger.panic("failed to allocate {d} bytes ({s})", .{ value.len, @errorName(err) });
                     std.process.exit(1);
                 };
-                std.mem.copyForwards(u8, host, value);
+                std.mem.copyForwards(u8, address, value);
             } else {
-                logger.fault("please provide a host", .{});
+                logger.fault("please provide an address", .{});
                 std.process.exit(1);
             }
         }
 
-        if (std.mem.eql(u8, arg, "--port")) {
+        if (std.mem.eql(u8, arg, "--port") or std.mem.eql(u8, arg, "-p")) {
             if (args.next()) |value| {
                 port = std.fmt.parseInt(u16, value, 10) catch {
                     logger.fault("port must be between 0 and 65535", .{});
@@ -66,7 +88,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--config-path")) {
+        if (std.mem.eql(u8, arg, "--config-path") or std.mem.eql(u8, arg, "-cp")) {
             if (args.next()) |value| {
                 std.heap.c_allocator.free(config_path);
                 config_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
@@ -80,7 +102,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--database-path")) {
+        if (std.mem.eql(u8, arg, "--database-path") or std.mem.eql(u8, arg, "-dp")) {
             if (args.next()) |value| {
                 std.heap.c_allocator.free(database_path);
                 database_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
@@ -94,7 +116,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--bucket-size")) {
+        if (std.mem.eql(u8, arg, "--bucket-size") or std.mem.eql(u8, arg, "-bs")) {
             if (args.next()) |value| {
                 bucket_size = std.fmt.parseInt(u24, value, 10) catch {
                     logger.fault("bucket size must be between 0 and 16777216", .{});
@@ -106,7 +128,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--log-level")) {
+        if (std.mem.eql(u8, arg, "--log-level") or std.mem.eql(u8, arg, "-ll")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "trace")) {
                     log_level = 6;
@@ -130,7 +152,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--log-requests")) {
+        if (std.mem.eql(u8, arg, "--log-requests") or std.mem.eql(u8, arg, "-lq")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {
                     log_requests = true;
@@ -146,7 +168,7 @@ pub fn init(args: *std.process.ArgIterator) void {
             }
         }
 
-        if (std.mem.eql(u8, arg, "--log-responses")) {
+        if (std.mem.eql(u8, arg, "--log-responses") or std.mem.eql(u8, arg, "-ls")) {
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {
                     log_responses = true;

@@ -23,8 +23,8 @@ pub fn main() void {
 
     logger.info("starting http server...", .{});
 
-    const address = std.net.Address.resolveIp(config.host, config.port) catch |err| {
-        logger.panic("failed to resolve address {s}:{d} ({s})", .{ config.host, config.port, @errorName(err) });
+    const address = std.net.Address.resolveIp(config.address, config.port) catch |err| {
+        logger.panic("failed to resolve address {s}:{d} ({s})", .{ config.address, config.port, @errorName(err) });
         std.process.exit(1);
     };
     var server = address.listen(.{ .kernel_backlog = 256, .reuse_address = true }) catch |err| {

@@ -107,8 +107,8 @@ fn parseConfig(path: []const u8, data: *Data) std.fs.File {
             logger.fault("app {d} must have a name", .{index});
             std.process.exit(1);
         };
-        const host = if (token.next()) |host| host else {
-            logger.fault("app {d} must have a host", .{index});
+        const address = if (token.next()) |address| address else {
+            logger.fault("app {d} must have an address", .{index});
             std.process.exit(1);
         };
         const port = if (token.next()) |port| port else {
@@ -136,7 +136,7 @@ fn parseConfig(path: []const u8, data: *Data) std.fs.File {
             std.process.exit(1);
         };
         std.mem.copyForwards(u8, app.name, name);
-        app.address = std.net.Address.resolveIp(host, std.fmt.parseInt(u16, port, 10) catch {
+        app.address = std.net.Address.resolveIp(address, std.fmt.parseInt(u16, port, 10) catch {
             logger.fault("app {d} port must be between 0 and 65535", .{index});
             std.process.exit(1);
         }) catch |err| {
