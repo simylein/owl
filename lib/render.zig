@@ -67,7 +67,7 @@ fn overview(data: *const database.Data, buffer: *std.ArrayList(u8)) !void {
     const color = try colorizeOverview(unknown, offline, online, data.apps.items.len);
     defer std.heap.c_allocator.free(color);
 
-    const header = try utils.format("<div class=\"p-4 rounded white {s}\">", .{color});
+    const header = try utils.format("<div class=\"p-4 rounded white dark:neutral-100 {s}\">", .{color});
     defer std.heap.c_allocator.free(header);
 
     const message = try contextualizeOverview(unknown, offline, online, data.apps.items.len);

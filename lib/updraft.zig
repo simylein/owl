@@ -124,8 +124,9 @@ fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(prefers-color-scheme:dark){");
 
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
-    try buffer.appendSlice(".dark\\:neutral-500{color:#737373}");
+    try buffer.appendSlice(".dark\\:neutral-100{color:#f5f5f5}");
     try buffer.appendSlice(".dark\\:neutral-400{color:#a3a3a3}");
+    try buffer.appendSlice(".dark\\:neutral-500{color:#737373}");
     try buffer.appendSlice(".dark\\:red-500{color:#ef4444}");
     try buffer.appendSlice(".dark\\:orange-500{color:#f97316}");
     try buffer.appendSlice(".dark\\:yellow-500{color:#eab308}");
