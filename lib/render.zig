@@ -33,7 +33,8 @@ pub fn body(data: *const database.Data) ![]u8 {
     try buffer.appendSlice("</head>");
 
     try buffer.appendSlice("<body class=\"m-0 black dark:white bg-neutral-100 dark:bg-neutral-900\">");
-    try buffer.appendSlice("<main class=\"flex flex-col mx-4 my-6 sm:mx-8 sm:my-9 md:mx-16 md:my-12\">");
+    try buffer.appendSlice("<main class=\"flex gap-4 sm:gap-8 flex-col mx-4 my-6 sm:mx-8 sm:my-9 md:mx-16 md:my-12\">");
+    try overview(data, &buffer);
     try buffer.appendSlice("<div class=\"flex gap-2 sm:gap-4 flex-col\">");
     for (data.apps.items) |app| {
         try container(app, &buffer);
@@ -43,6 +44,75 @@ pub fn body(data: *const database.Data) ![]u8 {
     try buffer.appendSlice("</body>");
 
     try buffer.appendSlice("</html>");
+
+    return buffer.toOwnedSlice();
+}
+
+fn overview(data: *const database.Data, buffer: *std.ArrayList(u8)) !void {
+    var unknown: u8 = 0;
+    var offline: u8 = 0;
+    var online: u8 = 0;
+
+    for (data.apps.items) |app| {
+        switch (app.latest.healthyness) {
+            0 => unknown += 1,
+            1 => offline += 1,
+            2 => offline += 1,
+            3 => offline += 1,
+            4 => online += 1,
+            else => break,
+        }
+    }
+
+    const color = try colorizeOverview(unknown, offline, online, data.apps.items.len);
+    defer std.heap.c_allocator.free(color);
+
+    const header = try utils.format("<div class=\"p-4 rounded white {s}\">", .{color});
+    defer std.heap.c_allocator.free(header);
+
+    const message = try contextualizeOverview(unknown, offline, online, data.apps.items.len);
+    defer std.heap.c_allocator.free(message);
+
+    const text = try utils.format("<h1 class=\"m-0 text-xl font-bold\">{s}</h1>", .{message});
+    defer std.heap.c_allocator.free(text);
+
+    try buffer.appendSlice(header);
+    try buffer.appendSlice(text);
+    try buffer.appendSlice("</div>");
+}
+
+fn colorizeOverview(unknown: u8, offline: u8, online: u8, total: usize) ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    if (unknown == total) {
+        try buffer.appendSlice("bg-neutral-400 dark:bg-neutral-600");
+    } else if (online == total) {
+        try buffer.appendSlice("bg-green-500 dark:bg-green-700");
+    } else if (unknown + offline == 1 and total > 1) {
+        try buffer.appendSlice("bg-yellow-500 dark:bg-yellow-700");
+    } else if (unknown + offline > 1 and unknown + offline < total) {
+        try buffer.appendSlice("bg-orange-500 dark:bg-orange-700");
+    } else {
+        try buffer.appendSlice("bg-red-500 dark:bg-red-700");
+    }
+
+    return buffer.toOwnedSlice();
+}
+
+fn contextualizeOverview(unknown: u8, offline: u8, online: u8, total: usize) ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    if (unknown == total) {
+        try buffer.appendSlice("system states unknown");
+    } else if (online == total) {
+        try buffer.appendSlice("all systems operational");
+    } else if (unknown + offline == 1 and total > 1) {
+        try buffer.appendSlice("one system offline");
+    } else if (unknown + offline > 1 and unknown + offline < total) {
+        try buffer.appendSlice("several systems offline");
+    } else {
+        try buffer.appendSlice("all systems unreachable");
+    }
 
     return buffer.toOwnedSlice();
 }

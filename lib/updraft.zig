@@ -39,13 +39,16 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".grid-columns-32{grid-template-columns:repeat(32,minmax(0,1fr))}");
 
     try buffer.appendSlice(".text-base{font-size:16px}");
+    try buffer.appendSlice(".text-xl{font-size:20px}");
     try buffer.appendSlice(".font-normal{font-weight:400}");
     try buffer.appendSlice(".font-semibold{font-weight:600}");
+    try buffer.appendSlice(".font-bold{font-weight:700}");
 
     try buffer.appendSlice(".rounded{border-radius:4px}");
     try buffer.appendSlice(".rounded-sm{border-radius:2px}");
 
     try buffer.appendSlice(".black{color:#000000}");
+    try buffer.appendSlice(".white{color:#ffffff}");
     try buffer.appendSlice(".neutral-400{color:#a3a3a3}");
     try buffer.appendSlice(".neutral-500{color:#737373}");
     try buffer.appendSlice(".red-600{color:#dc2626}");
@@ -56,10 +59,15 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".bg-white{background-color:#ffffff}");
     try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
     try buffer.appendSlice(".bg-neutral-300{background-color:#d4d4d4}");
+    try buffer.appendSlice(".bg-neutral-400{background-color:#a3a3a3}");
     try buffer.appendSlice(".bg-red-400{background-color:#f87171}");
+    try buffer.appendSlice(".bg-red-500{background-color:#ef4444}");
     try buffer.appendSlice(".bg-orange-400{background-color:#fb923c}");
+    try buffer.appendSlice(".bg-orange-500{background-color:#f97316}");
     try buffer.appendSlice(".bg-yellow-400{background-color:#facc15}");
+    try buffer.appendSlice(".bg-yellow-500{background-color:#eab308}");
     try buffer.appendSlice(".bg-green-400{background-color:#4ade80}");
+    try buffer.appendSlice(".bg-green-500{background-color:#22c55e}");
 }
 
 fn small(buffer: *std.ArrayList(u8)) !void {
@@ -124,12 +132,17 @@ fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".dark\\:green-500{color:#22c55e}");
 
     try buffer.appendSlice(".dark\\:bg-black{background-color:#000000}");
+    try buffer.appendSlice(".dark\\:bg-neutral-600{background-color:#525252}");
     try buffer.appendSlice(".dark\\:bg-neutral-700{background-color:#404040}");
     try buffer.appendSlice(".dark\\:bg-neutral-900{background-color:#171717}");
     try buffer.appendSlice(".dark\\:bg-red-600{background-color:#dc2626}");
+    try buffer.appendSlice(".dark\\:bg-red-700{background-color:#b91c1c}");
     try buffer.appendSlice(".dark\\:bg-orange-600{background-color:#ea580c}");
+    try buffer.appendSlice(".dark\\:bg-orange-700{background-color:#c2410c}");
     try buffer.appendSlice(".dark\\:bg-yellow-600{background-color:#ca8a04}");
+    try buffer.appendSlice(".dark\\:bg-yellow-700{background-color:#a16207}");
     try buffer.appendSlice(".dark\\:bg-green-600{background-color:#16a34a}");
+    try buffer.appendSlice(".dark\\:bg-green-700{background-color:#15803d}");
 
     try buffer.appendSlice("}");
 }
