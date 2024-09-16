@@ -71,6 +71,10 @@ pub fn check(data: *const database.Data, index: u8) void {
             }
         } else {
             app.days[day].unhealthy += 1;
+            if (app.latest.healthyness == 0) {
+                app.latest.healthyness = 1;
+                log(app);
+            }
             if (app.latest.healthyness > 1) {
                 app.latest.healthyness -= 1;
                 log(app);
