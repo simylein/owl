@@ -150,13 +150,13 @@ fn container(app: database.App, buffer: *std.ArrayList(u8)) !void {
     var total_healthy: f32 = 0;
     var total_count: f32 = 0;
     for (app.days) |day| {
-        const healthy: f16 = @floatFromInt(day.healthy);
-        const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
+        const healthy: f32 = @floatFromInt(day.healthy);
+        const count: f32 = @floatFromInt(day.healthy + day.unhealthy);
         total_healthy += healthy;
         total_count += count;
     }
     const percent: f32 = if (total_count != 0) (total_healthy / total_count) * 100 else 0;
-    const percent_color = try colorizeUptime(.{ .value = percent, .count = total_count });
+    const percent_color = try colorizeUptime(.{ .value = percent, .count = total_count, .healthy = total_healthy });
     defer std.heap.c_allocator.free(percent_color);
 
     const right = try utils.format("<p class=\"m-0 font-normal\">uptime <span class=\"font-semibold {s}\" title=\"{d:.3}% ({d}/{d})\">{d:.2}%</span></p>", .{ percent_color, percent, total_healthy, total_count, percent });
@@ -189,15 +189,15 @@ fn timeline(days: [96]database.Day, buffer: *std.ArrayList(u8)) !void {
 }
 
 const Percentage = struct {
-    value: f16,
-    count: f16,
-    healthy: f16,
+    value: f32,
+    count: f32,
+    healthy: f32,
 };
 
 fn percentage(day: database.Day) Percentage {
-    const healthy: f16 = @floatFromInt(day.healthy);
-    const count: f16 = @floatFromInt(day.healthy + day.unhealthy);
-    const value: f16 = if (count != 0) (healthy / count) * 100 else 0;
+    const healthy: f32 = @floatFromInt(day.healthy);
+    const count: f32 = @floatFromInt(day.healthy + day.unhealthy);
+    const value: f32 = if (count != 0) (healthy / count) * 100 else 0;
     return Percentage{ .value = value, .count = count, .healthy = healthy };
 }
 
@@ -237,12 +237,7 @@ fn colorizeDay(percent: Percentage) ![]u8 {
     return buffer.toOwnedSlice();
 }
 
-const TotalPercentage = struct {
-    value: f32,
-    count: f32,
-};
-
-fn colorizeUptime(percent: TotalPercentage) ![]u8 {
+fn colorizeUptime(percent: Percentage) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     if (percent.value == 0 and percent.count == 0) {
