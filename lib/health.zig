@@ -27,8 +27,12 @@ fn log(app: *database.App) void {
 }
 
 pub fn check(data: *const database.Data, index: u8) void {
-    std.time.sleep(std.time.ns_per_s);
-    var app = &data.apps.items[index];
+    const app = &data.apps.items[index];
+    const interval: u64 = @intCast(app.interval);
+
+    const next = @mod(std.time.nanoTimestamp(), (interval * std.time.ns_per_s));
+    std.time.sleep(@as(u64, @intCast(next)));
+
     const init = std.time.timestamp();
     var reflown: u64 = @intCast(init - @mod(init, config.bucket_size));
 
@@ -85,7 +89,6 @@ pub fn check(data: *const database.Data, index: u8) void {
             logger.fault("failed to insert data for app {s} ({s})", .{ app.name, @errorName(err) });
         };
 
-        const interval: u64 = @intCast(app.interval);
         if (latency > (interval * std.time.ns_per_s)) {
             continue;
         }
