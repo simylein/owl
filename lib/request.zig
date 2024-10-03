@@ -16,7 +16,7 @@ pub const Request = struct {
 };
 
 pub fn parse(connection: *const std.net.Server.Connection) !Request {
-    const buffer = try std.heap.c_allocator.alloc(u8, 1249);
+    const buffer = try std.heap.c_allocator.alloc(u8, 1240);
     const read = try connection.stream.read(buffer);
     logger.debug("read {d} bytes from {}", .{ read, connection.address });
 
