@@ -27,15 +27,10 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
         }
     }
 
+    var stage: u3 = 0;
     var iterator = utils.Iterator.init(buffer[0..read]);
 
     var method_index: u3 = 0;
-    var pathname_index: u6 = 0;
-    var search_index: u7 = 0;
-    var protocol_index: u4 = 0;
-
-    var stage: u3 = 0;
-
     while (stage == 0 and method_index < std.math.maxInt(@TypeOf(method_index))) : (method_index += 1) {
         const byte = iterator.next() orelse return error.NotImplemented;
         if (byte == ' ') {
@@ -49,6 +44,7 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
     }
     const method = try iterator.slice(method_index);
 
+    var pathname_index: u6 = 0;
     while (stage == 1 and pathname_index < std.math.maxInt(@TypeOf(pathname_index))) : (pathname_index += 1) {
         const byte = iterator.next() orelse return error.URITooLong;
         if (byte == '?') {
@@ -66,6 +62,7 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
     }
     const pathname = try iterator.slice(pathname_index);
 
+    var search_index: u7 = 0;
     while (stage == 2 and search_index < std.math.maxInt(@TypeOf(search_index))) : (search_index += 1) {
         const byte = iterator.next() orelse return error.URITooLong;
         if (byte == ' ') {
@@ -79,6 +76,7 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
     }
     const search = try iterator.slice(search_index);
 
+    var protocol_index: u4 = 0;
     while (stage == 3 and protocol_index < std.math.maxInt(@TypeOf(protocol_index))) : (protocol_index += 1) {
         const byte = iterator.next() orelse return error.HTTPVersionNotSupported;
         if (byte == '\n') {
