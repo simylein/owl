@@ -3,7 +3,7 @@ const logger = @import("logger.zig");
 const utils = @import("utils.zig");
 
 pub const Request = struct {
-    buffer: []u8,
+    buffer: []const u8,
     method: []const u8,
     pathname: []const u8,
     search: []const u8,
@@ -14,8 +14,8 @@ pub const Request = struct {
     }
 };
 
-pub fn parse(connection: std.net.Server.Connection) !Request {
-    var buffer = try std.heap.c_allocator.alloc(u8, 255);
+pub fn parse(connection: *const std.net.Server.Connection) !Request {
+    const buffer = try std.heap.c_allocator.alloc(u8, 255);
     const read = try connection.stream.read(buffer);
     logger.debug("read {d} bytes from {}", .{ read, connection.address });
 

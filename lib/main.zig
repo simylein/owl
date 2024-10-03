@@ -47,7 +47,7 @@ pub fn main() void {
 
         logger.debug("parsing request...", .{});
         const start = std.time.nanoTimestamp();
-        const req = request.parse(connection) catch |err| {
+        const req = request.parse(&connection) catch |err| {
             logger.fault("failed to parse request ({s})", .{@errorName(err)});
             continue;
         };
