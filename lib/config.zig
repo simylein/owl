@@ -40,6 +40,8 @@ pub fn init(args: *std.process.ArgIterator) void {
     std.mem.copyForwards(u8, database_path, default_database_path);
 
     while (args.next()) |arg| {
+        var known = false;
+
         if (std.mem.eql(u8, arg, "--help") or std.mem.eql(u8, arg, "-h")) {
             const human_log_level = switch (log_level) {
                 6 => "trace",
@@ -62,7 +64,14 @@ pub fn init(args: *std.process.ArgIterator) void {
             std.process.exit(0);
         }
 
+        if (std.mem.eql(u8, arg, "--version") or std.mem.eql(u8, arg, "-v")) {
+            logger.info("owl uptime version 0.0.8", .{});
+            logger.info("written by simylein in zig", .{});
+            std.process.exit(0);
+        }
+
         if (std.mem.eql(u8, arg, "--address") or std.mem.eql(u8, arg, "-a")) {
+            known = true;
             if (args.next()) |value| {
                 std.heap.c_allocator.free(address);
                 address = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
@@ -77,6 +86,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--port") or std.mem.eql(u8, arg, "-p")) {
+            known = true;
             if (args.next()) |value| {
                 port = std.fmt.parseInt(u16, value, 10) catch {
                     logger.fault("port must be between 0 and 65535", .{});
@@ -89,6 +99,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--config-path") or std.mem.eql(u8, arg, "-cp")) {
+            known = true;
             if (args.next()) |value| {
                 std.heap.c_allocator.free(config_path);
                 config_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
@@ -103,6 +114,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--database-path") or std.mem.eql(u8, arg, "-dp")) {
+            known = true;
             if (args.next()) |value| {
                 std.heap.c_allocator.free(database_path);
                 database_path = std.heap.c_allocator.alloc(u8, value.len) catch |err| {
@@ -117,6 +129,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--bucket-size") or std.mem.eql(u8, arg, "-bs")) {
+            known = true;
             if (args.next()) |value| {
                 bucket_size = std.fmt.parseInt(u24, value, 10) catch {
                     logger.fault("bucket size must be between 0 and 16777216", .{});
@@ -129,6 +142,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--log-level") or std.mem.eql(u8, arg, "-ll")) {
+            known = true;
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "trace")) {
                     log_level = 6;
@@ -153,6 +167,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--log-requests") or std.mem.eql(u8, arg, "-lq")) {
+            known = true;
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {
                     log_requests = true;
@@ -169,6 +184,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--log-responses") or std.mem.eql(u8, arg, "-ls")) {
+            known = true;
             if (args.next()) |value| {
                 if (std.mem.eql(u8, value, "true")) {
                     log_responses = true;
@@ -182,6 +198,12 @@ pub fn init(args: *std.process.ArgIterator) void {
                 logger.fault("please provide a log responses value", .{});
                 std.process.exit(1);
             }
+        }
+
+        if (!known) {
+            logger.fault("unknown argument {s}", .{arg});
+            logger.info("use --help to view flags", .{});
+            std.process.exit(1);
         }
     }
 }
