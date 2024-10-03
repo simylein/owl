@@ -22,7 +22,7 @@ fn log(comptime writer: anytype, comptime color: []const u8, comptime level: []c
     writer.print(bold ++ "owl" ++ reset ++ " " ++ bold ++ color ++ level ++ reset ++ bold ++ ":" ++ reset ++ " " ++ format ++ "\n", args) catch return;
 }
 
-pub fn request(method: []u8, pathname: []u8, address: std.net.Address) void {
+pub fn request(method: []const u8, pathname: []const u8, address: std.net.Address) void {
     if (config.log_requests) {
         log(stdout, "", "req", "{s} {s} from {}", .{ method, pathname, address });
     }

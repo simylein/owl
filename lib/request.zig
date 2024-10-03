@@ -3,22 +3,20 @@ const logger = @import("logger.zig");
 const utils = @import("utils.zig");
 
 pub const Request = struct {
-    method: []u8,
-    pathname: []u8,
-    search: []u8,
-    protocol: []u8,
+    buffer: []u8,
+    method: []const u8,
+    pathname: []const u8,
+    search: []const u8,
+    protocol: []const u8,
 
     pub fn deinit(self: Request) void {
-        std.heap.c_allocator.free(self.method);
-        std.heap.c_allocator.free(self.pathname);
-        std.heap.c_allocator.free(self.search);
-        std.heap.c_allocator.free(self.protocol);
+        std.heap.c_allocator.free(self.buffer);
     }
 };
 
 pub fn parse(connection: std.net.Server.Connection) !Request {
-    var buffer: [255]u8 = undefined;
-    const read = try connection.stream.read(&buffer);
+    var buffer = try std.heap.c_allocator.alloc(u8, 255);
+    const read = try connection.stream.read(buffer);
     logger.debug("read {d} bytes from {}", .{ read, connection.address });
 
     var index: u8 = 0;
@@ -49,9 +47,7 @@ pub fn parse(connection: std.net.Server.Connection) !Request {
             break;
         }
     }
-    const method = try std.heap.c_allocator.alloc(u8, method_index);
-    errdefer std.heap.c_allocator.free(method);
-    std.mem.copyForwards(u8, method, try iterator.slice(method_index));
+    const method = try iterator.slice(method_index);
 
     while (stage == 1 and pathname_index < std.math.maxInt(@TypeOf(pathname_index))) : (pathname_index += 1) {
         const byte = iterator.next() orelse return error.URITooLong;
@@ -68,9 +64,7 @@ pub fn parse(connection: std.net.Server.Connection) !Request {
             break;
         }
     }
-    const pathname = try std.heap.c_allocator.alloc(u8, pathname_index);
-    errdefer std.heap.c_allocator.free(pathname);
-    std.mem.copyForwards(u8, pathname, try iterator.slice(pathname_index));
+    const pathname = try iterator.slice(pathname_index);
 
     while (stage == 2 and search_index < std.math.maxInt(@TypeOf(search_index))) : (search_index += 1) {
         const byte = iterator.next() orelse return error.URITooLong;
@@ -83,9 +77,7 @@ pub fn parse(connection: std.net.Server.Connection) !Request {
             break;
         }
     }
-    const search = try std.heap.c_allocator.alloc(u8, search_index);
-    errdefer std.heap.c_allocator.free(search);
-    std.mem.copyForwards(u8, search, try iterator.slice(search_index));
+    const search = try iterator.slice(search_index);
 
     while (stage == 3 and protocol_index < std.math.maxInt(@TypeOf(protocol_index))) : (protocol_index += 1) {
         const byte = iterator.next() orelse return error.HTTPVersionNotSupported;
@@ -94,13 +86,11 @@ pub fn parse(connection: std.net.Server.Connection) !Request {
             break;
         }
     }
-    const protocol = try std.heap.c_allocator.alloc(u8, protocol_index);
-    errdefer std.heap.c_allocator.free(protocol);
-    std.mem.copyForwards(u8, protocol, try iterator.slice(protocol_index));
+    const protocol = try iterator.slice(protocol_index);
 
     if (stage != 4) {
         return error.BadRequest;
     }
 
-    return .{ .method = method, .pathname = pathname, .search = search, .protocol = protocol };
+    return .{ .buffer = buffer, .method = method, .pathname = pathname, .search = search, .protocol = protocol };
 }
