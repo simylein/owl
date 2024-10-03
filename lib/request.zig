@@ -19,20 +19,15 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
     const read = try connection.stream.read(buffer);
     logger.debug("read {d} bytes from {}", .{ read, connection.address });
 
-    var index: u8 = 0;
-    while (index < read) : (index += 1) {
-        const byte = buffer[index];
-        if (byte >= 'A' and byte <= 'Z') {
-            buffer[index] += 32;
-        }
-    }
-
     var stage: u3 = 0;
     var iterator = utils.Iterator.init(buffer[0..read]);
 
     var method_index: u3 = 0;
     while (stage == 0 and method_index < std.math.maxInt(@TypeOf(method_index))) : (method_index += 1) {
         const byte = iterator.next() orelse return error.NotImplemented;
+        if (byte >= 'A' and byte <= 'Z') {
+            buffer[method_index] += 32;
+        }
         if (byte == ' ') {
             stage = 1;
             break;
