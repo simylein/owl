@@ -56,7 +56,7 @@ pub fn nanoseconds(ns: u64) ![]const u8 {
 
 pub const Iterator = struct {
     input: []const u8,
-    index: usize,
+    index: u64,
 
     pub fn init(input: []const u8) Iterator {
         return Iterator{ .input = input, .index = 0 };
@@ -71,11 +71,13 @@ pub const Iterator = struct {
         return byte;
     }
 
-    pub fn slice(self: *Iterator, backwards: usize) ![]const u8 {
-        if (self.index == 0 or self.index - 1 < backwards) {
+    pub fn slice(self: *Iterator, backwards: u64, skip: u8) ![]const u8 {
+        if (skip > backwards) {
+            return self.input[self.index..self.index];
+        }
+        if (self.index < backwards) {
             return error.OutOfBounds;
         }
-        const index = self.index - 1;
-        return self.input[index - backwards .. index];
+        return self.input[self.index - backwards .. self.index - skip];
     }
 };
