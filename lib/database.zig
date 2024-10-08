@@ -54,8 +54,8 @@ pub const Data = struct {
         std.mem.writeInt(u64, buffer[1..9], status.timestamp, std.builtin.Endian.little);
         std.mem.writeInt(u48, buffer[9..15], status.latency, std.builtin.Endian.little);
         std.mem.writeInt(u8, buffer[15..16], if (status.healthy) 1 else 0, std.builtin.Endian.little);
-        const bytes = try self.database.write(&buffer);
-        logger.debug("wrote {d} bytes to database", .{bytes});
+        const wrote = try self.database.write(&buffer);
+        logger.debug("wrote {d} bytes to database", .{wrote});
     }
 };
 
