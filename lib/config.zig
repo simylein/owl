@@ -65,7 +65,7 @@ pub fn init(args: *std.process.ArgIterator) void {
         }
 
         if (std.mem.eql(u8, arg, "--version") or std.mem.eql(u8, arg, "-v")) {
-            logger.info("owl uptime version 0.0.9", .{});
+            logger.info("owl uptime version 0.1.0", .{});
             logger.info("written by simylein in zig", .{});
             std.process.exit(0);
         }

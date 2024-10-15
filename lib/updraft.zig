@@ -17,6 +17,7 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("body{-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, Roboto, Oxygen, sans-serif}");
 
     try buffer.appendSlice(".w-full{width:100%}");
+    try buffer.appendSlice(".h-full{height:100%}");
     try buffer.appendSlice(".h-8{height:32px}");
 
     try buffer.appendSlice(".m-0{margin:0}");
@@ -68,6 +69,10 @@ fn global(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".bg-yellow-500{background-color:#eab308}");
     try buffer.appendSlice(".bg-green-400{background-color:#4ade80}");
     try buffer.appendSlice(".bg-green-500{background-color:#22c55e}");
+
+    try buffer.appendSlice("@media(max-width:511px){");
+    try buffer.appendSlice(".max-sm\\:block{display:block}");
+    try buffer.appendSlice("}");
 }
 
 fn small(buffer: *std.ArrayList(u8)) !void {
@@ -85,6 +90,10 @@ fn small(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".sm\\:grid-columns-48{grid-template-columns:repeat(48,minmax(0,1fr))}");
 
     try buffer.appendSlice("}");
+
+    try buffer.appendSlice("@media(min-width:512px) and (max-width:767px){");
+    try buffer.appendSlice(".sm\\:max-md\\:block{display:block}");
+    try buffer.appendSlice("}");
 }
 
 fn medium(buffer: *std.ArrayList(u8)) !void {
@@ -98,6 +107,10 @@ fn medium(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice(".md\\:grid-columns-64{grid-template-columns:repeat(64,minmax(0,1fr))}");
 
     try buffer.appendSlice("}");
+
+    try buffer.appendSlice("@media(min-width:768px) and (max-width:1023px){");
+    try buffer.appendSlice(".md\\:max-lg\\:block{display:block}");
+    try buffer.appendSlice("}");
 }
 
 fn large(buffer: *std.ArrayList(u8)) !void {
@@ -107,6 +120,10 @@ fn large(buffer: *std.ArrayList(u8)) !void {
 
     try buffer.appendSlice(".lg\\:grid-columns-80{grid-template-columns:repeat(80,minmax(0,1fr))}");
 
+    try buffer.appendSlice("}");
+
+    try buffer.appendSlice("@media(min-width:1024px) and (max-width:1279px){");
+    try buffer.appendSlice(".lg\\:max-xl\\:block{display:block}");
     try buffer.appendSlice("}");
 }
 
@@ -122,6 +139,8 @@ fn giant(buffer: *std.ArrayList(u8)) !void {
 
 fn dark(buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("@media(prefers-color-scheme:dark){");
+
+    try buffer.appendSlice(".dark\\:invert{filter:invert(100%)}");
 
     try buffer.appendSlice(".dark\\:white{color:#ffffff}");
     try buffer.appendSlice(".dark\\:neutral-100{color:#f5f5f5}");

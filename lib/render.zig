@@ -166,6 +166,7 @@ fn container(app: database.App, buffer: *std.ArrayList(u8)) !void {
     try buffer.appendSlice("</div>");
 
     try timeline(app.days, buffer);
+    try graph(app.days, buffer);
 
     try buffer.appendSlice("</div>");
 }
@@ -253,4 +254,75 @@ fn colorizeUptime(percent: Percentage) ![]u8 {
     }
 
     return buffer.toOwnedSlice();
+}
+
+fn graph(days: [96]database.Day, buffer: *std.ArrayList(u8)) !void {
+    try buffer.appendSlice("<div class=\"w-full h-8\">");
+    try buffer.appendSlice("<svg class=\"w-full h-full dark:invert\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">");
+
+    try buffer.appendSlice("<line x1=\"0\" y1=\"33.5\" x2=\"100\" y2=\"33.5\" stroke=\"#737373\" stroke-width=\"1\"/>");
+    try buffer.appendSlice("<line x1=\"0\" y1=\"66.5\" x2=\"100\" y2=\"66.5\" stroke=\"#737373\" stroke-width=\"1\"/>");
+    try buffer.appendSlice("<line x1=\"0\" y1=\"99.5\" x2=\"100\" y2=\"99.5\" stroke=\"#737373\" stroke-width=\"1\"/>");
+
+    const xl_points = try coordinates(days[0..96]);
+    defer std.heap.c_allocator.free(xl_points);
+    try polyline(xl_points, "hidden xl:block", buffer);
+
+    const lg_points = try coordinates(days[16..96]);
+    defer std.heap.c_allocator.free(lg_points);
+    try polyline(lg_points, "hidden lg:max-xl:block", buffer);
+
+    const md_points = try coordinates(days[32..96]);
+    defer std.heap.c_allocator.free(md_points);
+    try polyline(md_points, "hidden md:max-lg:block", buffer);
+
+    const sm_points = try coordinates(days[48..96]);
+    defer std.heap.c_allocator.free(sm_points);
+    try polyline(sm_points, "hidden sm:max-md:block", buffer);
+
+    const points = try coordinates(days[64..96]);
+    defer std.heap.c_allocator.free(points);
+    try polyline(points, "hidden max-sm:block", buffer);
+
+    try buffer.appendSlice("</svg>");
+    try buffer.appendSlice("</div>");
+}
+
+fn coordinates(days: []const database.Day) ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    var min_average: f32 = 0;
+    var max_average: f32 = 0;
+    for (days) |day| {
+        const latency: f32 = @floatFromInt(day.latency);
+        const count: f32 = @floatFromInt(day.healthy + day.unhealthy);
+        const average = latency / count;
+        if (average > max_average) {
+            max_average = average;
+        }
+        if (average < min_average) {
+            min_average = average;
+        }
+    }
+
+    var index: u7 = 0;
+    while (index < days.len) : (index += 1) {
+        const latency: f32 = @floatFromInt(days[index].latency);
+        const count: f32 = @floatFromInt(days[index].healthy + days[index].unhealthy);
+        const average = latency / count;
+        const fraction = if (average > 0) ((average - min_average) / (max_average - min_average)) * 99 else 0;
+        const len: f32 = @floatFromInt(days.len);
+        const ind: f32 = @floatFromInt(index);
+        const slice = try utils.format("{d:.2},{d:.2} ", .{ ind / len * 100 + (100 / len / 2), 99 - fraction });
+        defer std.heap.c_allocator.free(slice);
+        try buffer.appendSlice(slice);
+    }
+
+    return buffer.toOwnedSlice();
+}
+
+fn polyline(points: []u8, display: []const u8, buffer: *std.ArrayList(u8)) !void {
+    const slice = try utils.format("<polyline class=\"{s}\" fill=\"none\" stroke=\"#000000\" stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" points=\"{s}\"/>", .{ display, points });
+    defer std.heap.c_allocator.free(slice);
+    try buffer.appendSlice(slice);
 }
