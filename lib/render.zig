@@ -310,10 +310,10 @@ fn coordinates(days: []const database.Day) ![]u8 {
         const latency: f32 = @floatFromInt(days[index].latency);
         const count: f32 = @floatFromInt(days[index].healthy + days[index].unhealthy);
         const average = latency / count;
-        const fraction = if (average > 0) ((average - min_average) / (max_average - min_average)) * 99 else 0;
+        const fraction = if (average > 0) ((average - min_average) / (max_average - min_average)) * 97 else 0;
         const len: f32 = @floatFromInt(days.len);
         const ind: f32 = @floatFromInt(index);
-        const slice = try utils.format("{d:.2},{d:.2} ", .{ ind / len * 100 + (100 / len / 2), 99 - fraction });
+        const slice = try utils.format("{d:.2},{d:.0} ", .{ ind / len * 100 + (100 / len / 2), 99 - fraction });
         defer std.heap.c_allocator.free(slice);
         try buffer.appendSlice(slice);
     }
