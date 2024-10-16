@@ -296,11 +296,14 @@ fn coordinates(days: []const database.Day) ![]u8 {
     for (days) |day| {
         const latency: f32 = @floatFromInt(day.latency);
         const count: f32 = @floatFromInt(day.healthy + day.unhealthy);
+        if (latency == 0 or count == 0) {
+            continue;
+        }
         const average = latency / count;
-        if (average > max_average) {
+        if (average > max_average or max_average == 0) {
             max_average = average;
         }
-        if (average < min_average) {
+        if (average < min_average or min_average == 0) {
             min_average = average;
         }
     }
@@ -309,8 +312,11 @@ fn coordinates(days: []const database.Day) ![]u8 {
     while (index < days.len) : (index += 1) {
         const latency: f32 = @floatFromInt(days[index].latency);
         const count: f32 = @floatFromInt(days[index].healthy + days[index].unhealthy);
+        if (latency == 0 or count == 0) {
+            continue;
+        }
         const average = latency / count;
-        const fraction = if (average > 0) ((average - min_average) / (max_average - min_average)) * 97 else 0;
+        const fraction = ((average - min_average) / (max_average - min_average)) * 97;
         const len: f32 = @floatFromInt(days.len);
         const ind: f32 = @floatFromInt(index);
         const slice = try utils.format("{d:.2},{d:.0} ", .{ ind / len * 100 + (100 / len / 2), 99 - fraction });
