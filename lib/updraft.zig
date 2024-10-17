@@ -14,7 +14,7 @@ pub fn style(buffer: *std.ArrayList(u8)) !void {
 }
 
 fn global(buffer: *std.ArrayList(u8)) !void {
-    try buffer.appendSlice("body{-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, Roboto, Oxygen, sans-serif}");
+    try buffer.appendSlice("body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-family:-apple-system,BlinkMacSystemFont,Helvetica,Arial,Roboto,Oxygen,sans-serif}");
 
     try buffer.appendSlice(".w-full{width:100%}");
     try buffer.appendSlice(".h-full{height:100%}");
