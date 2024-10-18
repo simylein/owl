@@ -5,6 +5,7 @@ const logger = @import("logger.zig");
 const health = @import("health.zig");
 const render = @import("render.zig");
 const request = @import("request.zig");
+const response = @import("response.zig");
 
 pub fn main() void {
     var args = std.process.args();
@@ -55,38 +56,49 @@ pub fn main() void {
 
         logger.request(req.method, req.pathname, connection.address);
 
-        const res = handle(&data) catch |err| {
+        const res = handle(&req, &data) catch |err| {
             logger.fault("failed to handle client {} ({s})", .{ connection.address, @errorName(err) });
             continue;
         };
-        defer std.heap.c_allocator.free(res);
+        defer res.deinit();
 
         const stop = std.time.nanoTimestamp();
         const time: u48 = @intCast(stop - start);
 
-        logger.response(200, time, res.len);
+        logger.response(res.status, time, res.buffer.len);
 
-        const wrote = connection.stream.write(res) catch |err| {
-            logger.fault("failed to send {d} bytes client {} ({s})", .{ res.len, connection.address, @errorName(err) });
+        const wrote = connection.stream.write(res.buffer) catch |err| {
+            logger.fault("failed to send {d} bytes client {} ({s})", .{ res.buffer.len, connection.address, @errorName(err) });
             continue;
         };
         logger.debug("wrote {d} bytes to {}", .{ wrote, connection.address });
     }
 }
 
-fn handle(data: *const database.Data) ![]u8 {
+fn handle(req: *const request.Request, data: *const database.Data) !response.Response {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     logger.trace("rendering body...", .{});
-    const body = try render.body(data);
-    defer std.heap.c_allocator.free(body);
+    const body = try route(req, data);
+    defer body.deinit();
 
     logger.trace("rendering head...", .{});
-    const head = try render.head(body.len);
+    const head = try render.head(body.status, body.content, body.buffer.len);
     defer std.heap.c_allocator.free(head);
 
     try buffer.appendSlice(head);
-    try buffer.appendSlice(body);
+    try buffer.appendSlice(body.buffer);
 
-    return buffer.toOwnedSlice();
+    return .{ .buffer = try buffer.toOwnedSlice(), .status = body.status, .content = body.content };
+}
+
+fn route(req: *const request.Request, data: *const database.Data) !response.Response {
+    logger.trace("routing request...", .{});
+    if (std.mem.eql(u8, req.pathname, "/")) {
+        return .{ .buffer = try render.home(data), .status = 200, .content = "text/html" };
+    } else if (std.mem.eql(u8, req.pathname, "/robots.txt")) {
+        return .{ .buffer = try render.robots(), .status = 200, .content = "text/plain" };
+    } else {
+        return .{ .buffer = try render.notFound(), .status = 404, .content = "text/html" };
+    }
 }

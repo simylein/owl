@@ -3,20 +3,30 @@ const database = @import("database.zig");
 const updraft = @import("updraft.zig");
 const utils = @import("utils.zig");
 
-pub fn head(length: usize) ![]u8 {
+pub fn head(status: u9, content: []const u8, length: usize) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
-    try buffer.appendSlice("HTTP/1.1 200 OK\r\n");
-    try buffer.appendSlice("content-type:text/html\r\n");
-    const slice = try utils.format("content-length:{d}\r\n", .{length});
-    defer std.heap.c_allocator.free(slice);
-    try buffer.appendSlice(slice);
+    const text = switch (status) {
+        200 => "OK",
+        404 => "Not Found",
+        else => return error.UnknownStatus,
+    };
+
+    const status_line = try utils.format("HTTP/1.1 {d} {s}\r\n", .{ status, text });
+    defer std.heap.c_allocator.free(status_line);
+    try buffer.appendSlice(status_line);
+    const content_type = try utils.format("content-type:{s}\r\n", .{content});
+    defer std.heap.c_allocator.free(content_type);
+    try buffer.appendSlice(content_type);
+    const content_length = try utils.format("content-length:{d}\r\n", .{length});
+    defer std.heap.c_allocator.free(content_length);
+    try buffer.appendSlice(content_length);
     try buffer.appendSlice("\r\n");
 
     return buffer.toOwnedSlice();
 }
 
-pub fn body(data: *const database.Data) ![]u8 {
+pub fn home(data: *const database.Data) ![]u8 {
     var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
 
     try buffer.appendSlice("<!doctype html>");
@@ -40,6 +50,84 @@ pub fn body(data: *const database.Data) ![]u8 {
         try container(app, &buffer);
     }
     try buffer.appendSlice("</div>");
+    try buffer.appendSlice("</main>");
+    try buffer.appendSlice("</body>");
+
+    try buffer.appendSlice("</html>");
+
+    return buffer.toOwnedSlice();
+}
+
+pub fn robots() ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    try buffer.appendSlice("User-agent:*\n");
+    try buffer.appendSlice("Allow:*\n");
+
+    return buffer.toOwnedSlice();
+}
+
+pub fn notFound() ![]u8 {
+    var buffer = std.ArrayList(u8).init(std.heap.c_allocator);
+
+    try buffer.appendSlice("<!doctype html>");
+    try buffer.appendSlice("<html lang=\"en\">");
+
+    try buffer.appendSlice("<head>");
+    try buffer.appendSlice("<meta charset=\"utf-8\">");
+    try buffer.appendSlice("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">");
+    try buffer.appendSlice("<meta name=\"description\" content=\"we could not find the page you were looking for\">");
+    try buffer.appendSlice("<title>404 Not Found</title>");
+
+    try buffer.appendSlice("<style>");
+
+    try buffer.appendSlice("body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-family:-apple-system,BlinkMacSystemFont,Helvetica,Arial,Roboto,Oxygen,sans-serif}");
+    try buffer.appendSlice(".min-h-dvh{min-height:100dvh}");
+    try buffer.appendSlice(".flex{display:flex}");
+    try buffer.appendSlice(".flex-col{flex-direction:column}");
+    try buffer.appendSlice(".items-center{align-items:center}");
+    try buffer.appendSlice(".justify-center{justify-content:center}");
+    try buffer.appendSlice(".m-0{margin:0}");
+    try buffer.appendSlice(".m-4{margin:16px}");
+    try buffer.appendSlice(".mb-2{margin-bottom:8px}");
+    try buffer.appendSlice(".p-4{padding:16px}");
+    try buffer.appendSlice(".rounded{border-radius:4px}");
+    try buffer.appendSlice(".text-base{font-size:16px}");
+    try buffer.appendSlice(".text-2xl{font-size:24px}");
+    try buffer.appendSlice(".font-normal{font-weight:400}");
+    try buffer.appendSlice(".font-bold{font-weight:700}");
+    try buffer.appendSlice(".no-underline{text-decoration-line:none}");
+    try buffer.appendSlice(".black{color:#000}");
+    try buffer.appendSlice(".blue-600{color:#2563eb}");
+    try buffer.appendSlice(".bg-white{background-color:#fff}");
+    try buffer.appendSlice(".bg-neutral-100{background-color:#f5f5f5}");
+
+    try buffer.appendSlice("@media(min-width:512px){");
+    try buffer.appendSlice(".sm\\:m-16{margin:64px}");
+    try buffer.appendSlice(".sm\\:mb-4{margin-bottom:16px}");
+    try buffer.appendSlice(".sm\\:mb-3{margin-bottom:12px}");
+    try buffer.appendSlice(".sm\\:p-8{padding:32px}");
+    try buffer.appendSlice(".sm\\:text-3xl{font-size:30px}");
+    try buffer.appendSlice("}");
+
+    try buffer.appendSlice("@media(prefers-color-scheme:dark){");
+    try buffer.appendSlice(".dark\\:white{color:#fff}");
+    try buffer.appendSlice(".dark\\:blue-400{color:#60a5fa}");
+    try buffer.appendSlice(".dark\\:bg-black{background-color:#000}");
+    try buffer.appendSlice(".dark\\:bg-neutral-900{background-color:#171717}");
+    try buffer.appendSlice("}");
+
+    try buffer.appendSlice("</style>");
+
+    try buffer.appendSlice("</head>");
+
+    try buffer.appendSlice("<body class=\"min-h-dvh flex flex-col items-center justify-center m-0 black dark:white bg-neutral-100 dark:bg-neutral-900\">");
+    try buffer.appendSlice("<main class=\"m-4 sm:m-16 p-4 sm:p-8 rounded bg-white dark:bg-black\">");
+
+    try buffer.appendSlice("<h1 class=\"m-0 mb-2 sm:mb-4 text-2xl sm:text-3xl font-bold\">404 - Not Found</h1>");
+    try buffer.appendSlice("<p class=\"m-0 mb-2 sm:mb-3\">We could not find the page you were looking for.</p>");
+    try buffer.appendSlice("<a href=\"/\" class=\"no-underline text-base font-normal blue-600 dark:blue-400\">Take me home</a>");
+
     try buffer.appendSlice("</main>");
     try buffer.appendSlice("</body>");
 
