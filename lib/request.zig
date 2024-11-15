@@ -88,7 +88,7 @@ pub fn parse(connection: *const std.net.Server.Connection) !Request {
 
     var key = true;
     var header_index: u10 = 0;
-    while ((stage >= 5 or stage <= 9) and header_index < std.math.maxInt(@TypeOf(header_index))) : (header_index += 1) {
+    while ((stage >= 5 and stage <= 9) and header_index < std.math.maxInt(@TypeOf(header_index))) : (header_index += 1) {
         const byte = iterator.next() orelse break;
         if (key and byte >= 'A' and byte <= 'Z') {
             buffer[iterator.index - 1] += 32;
